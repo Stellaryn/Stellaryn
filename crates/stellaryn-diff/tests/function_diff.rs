@@ -3,9 +3,7 @@
 use stellaryn_core::{
     AnalysisSource, ContractInterface, Function, InterfaceValidationError, Parameter, TypeRef,
 };
-use stellaryn_diff::{
-    diff_functions, ChangeClassification, DiffError, FunctionChangeId,
-};
+use stellaryn_diff::{diff_functions, ChangeClassification, DiffError, FunctionChangeId};
 
 fn interface(functions: Vec<Function>) -> ContractInterface {
     ContractInterface {
@@ -50,7 +48,11 @@ fn identical_functions_produce_no_changes() {
 #[test]
 fn added_function_is_non_breaking() {
     let before = interface(Vec::new());
-    let after = interface(vec![function("version", Vec::new(), vec![TypeRef::primitive("u32")])]);
+    let after = interface(vec![function(
+        "version",
+        Vec::new(),
+        vec![TypeRef::primitive("u32")],
+    )]);
 
     let diff = diff_functions(&before, &after).unwrap();
 
@@ -184,10 +186,7 @@ fn added_parameter_is_breaking() {
 
     let diff = diff_functions(&before, &after).unwrap();
 
-    assert_eq!(
-        diff.changes[0].id,
-        FunctionChangeId::FunctionParameterAdded
-    );
+    assert_eq!(diff.changes[0].id, FunctionChangeId::FunctionParameterAdded);
     assert_eq!(
         diff.changes[0].classification,
         ChangeClassification::Breaking
