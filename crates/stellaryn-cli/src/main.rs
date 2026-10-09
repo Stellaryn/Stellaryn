@@ -152,7 +152,7 @@ fn run(cli: Cli) -> Result<i32, CliError> {
     if cli.product_info {
         println!("product={PRODUCT_NAME}");
         println!("version={}", env!("CARGO_PKG_VERSION"));
-        println!("status=pre-alpha");
+        println!("status=initial-release");
         println!("disclaimer={DISCLAIMER}");
         return Ok(0);
     }
