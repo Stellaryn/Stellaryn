@@ -62,7 +62,11 @@ fn compare(left: &str, right: &str, extra: &[&str]) -> Output {
 #[test]
 fn independently_compiled_artifacts_have_executable_code_and_contract_specifications() {
     for artifact in real_artifacts() {
-        assert!(artifact.bytes.starts_with(b"\0asm\x01\0\0\0"), "{}", artifact.name);
+        assert!(
+            artifact.bytes.starts_with(b"\0asm\x01\0\0\0"),
+            "{}",
+            artifact.name
+        );
         assert!(artifact.bytes.len() > 500, "{}", artifact.name);
         let mut spec_sections = 0;
         let mut code_bodies = 0;
@@ -76,8 +80,16 @@ fn independently_compiled_artifacts_have_executable_code_and_contract_specificat
                 _ => {}
             }
         }
-        assert_eq!(spec_sections, 1, "{} has ambiguous contract spec", artifact.name);
-        assert!(code_bodies > 0, "{} is not executable compiled WASM", artifact.name);
+        assert_eq!(
+            spec_sections, 1,
+            "{} has ambiguous contract spec",
+            artifact.name
+        );
+        assert!(
+            code_bodies > 0,
+            "{} is not executable compiled WASM",
+            artifact.name
+        );
     }
 }
 
@@ -89,9 +101,18 @@ fn fixture_git_object_hashes_match_the_pinned_upstream_sources() {
             .arg(fixture_path(artifact.name))
             .output()
             .unwrap();
-        assert!(output.status.success(), "Git hash-object failed for {}", artifact.name);
+        assert!(
+            output.status.success(),
+            "Git hash-object failed for {}",
+            artifact.name
+        );
         let sha = String::from_utf8(output.stdout).unwrap();
-        assert_eq!(sha.trim(), artifact.git_blob, "{} bytes changed", artifact.name);
+        assert_eq!(
+            sha.trim(),
+            artifact.git_blob,
+            "{} bytes changed",
+            artifact.name
+        );
     }
 }
 
@@ -100,7 +121,11 @@ fn all_four_compiled_contract_specs_extract_without_empty_fallbacks() {
     for artifact in real_artifacts() {
         let interface = extract_interface_from_wasm(artifact.bytes)
             .unwrap_or_else(|err| panic!("{} failed extraction: {err}", artifact.name));
-        assert!(!interface.functions.is_empty(), "{} has no functions", artifact.name);
+        assert!(
+            !interface.functions.is_empty(),
+            "{} has no functions",
+            artifact.name
+        );
         interface.validate().unwrap();
         let identical = diff_contracts(&interface, &interface).unwrap();
         assert_eq!(identical.verdict, Verdict::Compatible, "{}", artifact.name);
@@ -110,10 +135,9 @@ fn all_four_compiled_contract_specs_extract_without_empty_fallbacks() {
 
 #[test]
 fn independent_testnet_increment_signature_is_recognized() {
-    let interface = extract_interface_from_wasm(
-        include_bytes!("../fixtures/real/testnet_increment.wasm"),
-    )
-    .unwrap();
+    let interface =
+        extract_interface_from_wasm(include_bytes!("../fixtures/real/testnet_increment.wasm"))
+            .unwrap();
     let inc = interface
         .functions
         .iter()
@@ -126,24 +150,27 @@ fn independent_testnet_increment_signature_is_recognized() {
 
 #[test]
 fn official_sdk_constructor_artifact_has_a_constructor_function() {
-    let interface = extract_interface_from_wasm(
-        include_bytes!("../fixtures/real/sdk_constructor.wasm"),
-    )
-    .unwrap();
-    assert!(interface.functions.iter().any(|func| func.name == "__constructor"));
+    let interface =
+        extract_interface_from_wasm(include_bytes!("../fixtures/real/sdk_constructor.wasm"))
+            .unwrap();
+    assert!(interface
+        .functions
+        .iter()
+        .any(|func| func.name == "__constructor"));
 }
 
 #[test]
 fn public_mainnet_dataset_contracts_have_distinct_structured_interfaces() {
-    let small = extract_interface_from_wasm(
-        include_bytes!("../fixtures/real/mainnet_arb_bot.wasm"),
-    )
-    .unwrap();
-    let large = extract_interface_from_wasm(
-        include_bytes!("../fixtures/real/mainnet_aqua_amm.wasm"),
-    )
-    .unwrap();
-    assert!(large.functions.len() >= 5, "complex AMM fixture lost functions");
+    let small =
+        extract_interface_from_wasm(include_bytes!("../fixtures/real/mainnet_arb_bot.wasm"))
+            .unwrap();
+    let large =
+        extract_interface_from_wasm(include_bytes!("../fixtures/real/mainnet_aqua_amm.wasm"))
+            .unwrap();
+    assert!(
+        large.functions.len() >= 5,
+        "complex AMM fixture lost functions"
+    );
     assert_ne!(small, large);
     let report = diff_contracts(&small, &large).unwrap();
     assert_eq!(report.verdict, Verdict::Incompatible);
@@ -168,7 +195,11 @@ fn real_wasm_self_comparison_preserves_cli_json_and_exit_zero() {
         );
         assert!(output.stderr.is_empty(), "{}", artifact.name);
         let data: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-        assert_eq!(data["analysis"]["verdict"], "COMPATIBLE", "{}", artifact.name);
+        assert_eq!(
+            data["analysis"]["verdict"], "COMPATIBLE",
+            "{}",
+            artifact.name
+        );
         assert_eq!(data["analysis"]["totals"]["breaking"], 0);
         assert_eq!(data["analysis"]["findings"].as_array().unwrap().len(), 0);
     }
@@ -190,7 +221,10 @@ fn comparing_different_compiled_contracts_produces_findings_and_policy_exit_two(
     let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(report["analysis"]["verdict"], "INCOMPATIBLE");
     assert!(report["analysis"]["totals"]["breaking"].as_u64().unwrap() > 0);
-    assert!(!report["analysis"]["findings"].as_array().unwrap().is_empty());
+    assert!(!report["analysis"]["findings"]
+        .as_array()
+        .unwrap()
+        .is_empty());
 }
 
 #[test]
