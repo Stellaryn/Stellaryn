@@ -2,6 +2,20 @@
 
 > **Snapshot created: 2026-10-09.** This file helps a fresh ChatGPT/Codex session continue faithfully without relying on long-chat memory. **Always verify live `main` and current CI first:** this is a dated checkpoint, not live status.
 
+## Latest independently verified checkpoint — 2026-10-09 (supersedes historical pre-release snapshot below)
+
+- **Published release:** [Stellaryn v0.1.0](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0), GitHub Release `draft=false`, `prerelease=false`, published 2026-10-09T19:48:37Z.
+- **Release tag `v0.1.0` and `main` at publication:** `17de3459ef24641c6544e845e35ba5a7fbcd0f9e`. Verify live `main` separately on every future visit; documentation-only commits may move it beyond the release tag.
+- **Final release CI:** [standard quality checks](https://github.com/Stellaryn/Stellaryn/actions/runs/37982084864) successful; [native release candidates](https://github.com/Stellaryn/Stellaryn/actions/runs/37982085083) successful on all three runners; [public release publication workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203) successful on release tag SHA.
+- **Published assets:** three platform archives plus three matching SHA-256 companions for Linux `x86_64-unknown-linux-gnu`, Windows `x86_64-pc-windows-msvc`, macOS `aarch64-apple-darwin`. These are verified integrity checks, **not** signatures or notarization.
+- **Development evidence:** [GitBook Git Sync config and readiness PR #1](https://github.com/Stellaryn/Stellaryn/pull/1), [version/documentation PR #2](https://github.com/Stellaryn/Stellaryn/pull/2), and [release pipeline PR #6](https://github.com/Stellaryn/Stellaryn/pull/6), all merged after same-commit standard/native CI passed.
+- **Contributor opportunities:** [verified on-chain-upgrade fixture research #3](https://github.com/Stellaryn/Stellaryn/issues/3), [adversarial WASM/XDR regression tests #4](https://github.com/Stellaryn/Stellaryn/issues/4), [Windows PowerShell quickstart #5](https://github.com/Stellaryn/Stellaryn/issues/5). These issues do not assert completed work or Drips acceptance.
+- **GitBook publication blocker:** site `site_V9vjJ`, space `SnnJHT7ASMqWHFbG2v84`, linked GitBook source config `gitbook-docs.yaml` in repository root maps `./docs`. At last GitBook verification the connection was **pending**, the site had **zero pages**, and it was **not published**. Complete/authorize initial **GitHub → GitBook** sync in GitBook UI, recheck imported pages and navigation, then publish. Never send an empty site live or choose GitBook → GitHub for initial import.
+- **Program application:** official current Drips Wave acceptance, active eligibility requirements, submission and approvals must still be checked. A public binary release does **not** prove Drips program eligibility or approval. Site/landing page is not an excuse to invent adoption data.
+- **Remaining tasks:** postpublication README/docs reconciliation, GitBook successful import + verified public URL, genuine CLI demo, maintainer/application evidence. Keep public root README free of phase numbers; test all edits.
+
+**History note:** The older section below is a dated *historical pre-release* snapshot. Do not treat its `0.1.0-alpha.1` or “no public release” statements as current state.
+
 ## 1. Project and links
 
 - **Project:** Stellaryn — local-first Soroban smart-contract **public-interface compatibility analyzer**.
