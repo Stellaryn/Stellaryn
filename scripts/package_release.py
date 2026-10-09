@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-"""Create and verify reproducible, native-platform Stellaryn release-candidate archives.
+"""Deterministic Stellaryn release archive builder and smoke verifier.
 
-Archives are untrusted until verification succeeds. The command works with
-a locally built `target/release/stellaryn[.exe]`; it never compiles or
-downloads a binary itself.
-
-Python 3.11+ required (tomllib).
+Stdlib-only, run on each target OS. No GitHub release is published.
+Version comes from the workspace Cargo.toml; target comes from rustc -vV.
 """
-
 from __future__ import annotations
 
 import argparse
@@ -16,7 +12,7 @@ import hashlib
 import io
 import json
 import os
-import stat
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -26,214 +22,225 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ("README.md", "LICENSE", "docs/limitations.md")
-MAX_UNPACKED_SIZE = 100 * 1024 * 1024
+FILES = {
+    "LICENSE": ROOT / "LICENSE",
+    "README.md": ROOT / "README.md",
+    "docs/getting-started.md": ROOT / "docs/getting-started.md",
+    "docs/limitations.md": ROOT / "docs/limitations.md",
+    "docs/cli-reports.md": ROOT / "docs/cli-reports.md",
+}
+FIXTURE_SIGNED = ROOT / "tests/fixtures/real/compiled_add_i128.wasm"
+FIXTURE_UNSIGNED = ROOT / "tests/fixtures/real/compiled_add_u128.wasm"
+MAX_EXTRACTED_BYTES = 32 * 1024 * 1024
 
 
-def project_version(root: Path = ROOT) -> str:
-    with (root / "Cargo.toml").open("rb") as stream:
-        return tomllib.load(stream)["workspace"]["package"]["version"]
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
-def host_target() -> str:
-    output = subprocess.check_output(["rustc", "-vV"], text=True)
-    for line in output.splitlines():
-        if line.startswith("host: "):
-            return line.partition(": ")[2]
-    raise ValueError("rustc -vV did not report a host target")
+def workspace_version() -> str:
+    with (ROOT / "Cargo.toml").open("rb") as handle:
+        return tomllib.load(handle)["workspace"]["package"]["version"]
 
 
-def binary_name(target: str) -> str:
-    return "stellaryn.exe" if "-windows-" in target else "stellaryn"
-
-
-def release_basename(version: str, target: str) -> str:
-    for value in (version, target):
-        if not value or not all(ch.isascii() and (ch.isalnum() or ch in ".-_") for ch in value):
-            raise ValueError("version and target must contain only ASCII letters, digits, dots, dashes and underscores")
-    return f"stellaryn-v{version}-{target}"
-
-
-def sha256(content: bytes) -> str:
-    return hashlib.sha256(content).hexdigest()
-
-
-def bundle_files(root: Path, target: str) -> dict[str, tuple[bytes, int]]:
-    binary = root / "target" / "release" / binary_name(target)
-    if not binary.is_file():
-        raise FileNotFoundError(f"compiled native binary missing: {binary}")
-    entries: dict[str, tuple[bytes, int]] = {
-        binary_name(target): (binary.read_bytes(), 0o755)
-    }
-    if not entries[binary_name(target)][0]:
-        raise ValueError("compiled binary is empty")
-    for relative in FILES:
-        entries[relative] = ((root / relative).read_bytes(), 0o644)
-    return entries
-
-
-def make_zip(entries: dict[str, tuple[bytes, int]], prefix: str) -> bytes:
-    output = io.BytesIO()
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as bundle:
-        for name, (content, mode) in sorted(entries.items()):
-            item = zipfile.ZipInfo(f"{prefix}/{name}", (1980, 1, 1, 0, 0, 0))
-            item.compress_type = zipfile.ZIP_DEFLATED
-            item.create_system = 3
-            item.external_attr = (stat.S_IFREG | mode) << 16
-            bundle.writestr(item, content, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
-    return output.getvalue()
-
-
-def make_tar_gz(entries: dict[str, tuple[bytes, int]], prefix: str) -> bytes:
-    output = io.BytesIO()
-    with gzip.GzipFile(fileobj=output, mode="wb", filename="", mtime=0, compresslevel=9) as zipped:
-        with tarfile.open(fileobj=zipped, mode="w", format=tarfile.USTAR_FORMAT) as bundle:
-            for name, (content, mode) in sorted(entries.items()):
-                info = tarfile.TarInfo(f"{prefix}/{name}")
-                info.size = len(content)
-                info.mode = mode
-                info.uid = 0
-                info.gid = 0
-                info.uname = ""
-                info.gname = ""
-                info.mtime = 0
-                bundle.addfile(info, io.BytesIO(content))
-    return output.getvalue()
-
-
-def archive_name(version: str, target: str) -> str:
-    return release_basename(version, target) + (".zip" if "-windows-" in target else ".tar.gz")
-
-
-def create_bundle(root: Path, dist: Path, version: str, target: str) -> Path:
-    entries = bundle_files(root, target)
-    base = release_basename(version, target)
-    content = make_zip(entries, base) if "-windows-" in target else make_tar_gz(entries, base)
-    dist.mkdir(parents=True, exist_ok=True)
-    archive = dist / archive_name(version, target)
-    archive.write_bytes(content)
-    archive.with_name(archive.name + ".sha256").write_text(
-        f"{sha256(content)}  {archive.name}\n", encoding="ascii", newline="\n"
+def rust_target() -> str:
+    completed = subprocess.run(
+        ["rustc", "-vV"], capture_output=True, text=True, check=True, timeout=20
     )
-    print(f"PACKAGED {archive.name} ({len(content)} bytes, sha256 {sha256(content)})")
+    for line in completed.stdout.splitlines():
+        if line.startswith("host: "):
+            return line.removeprefix("host: ").strip()
+    raise ValueError("rustc did not report its host target")
+
+
+def fixed_files(binary: Path, prefix: str) -> list[tuple[str, bytes, int]]:
+    name = "stellaryn.exe" if os.name == "nt" else "stellaryn"
+    if not binary.is_file():
+        raise FileNotFoundError(f"missing release executable: {binary}")
+    members = [(f"{prefix}/{name}", binary.read_bytes(), 0o755)]
+    for relative, path in FILES.items():
+        members.append((f"{prefix}/{relative}", path.read_bytes(), 0o644))
+    return members
+
+
+def make_zip(members: list[tuple[str, bytes, int]], output: Path) -> None:
+    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as arc:
+        for name, data, mode in sorted(members):
+            entry = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            entry.create_system = 3
+            entry.external_attr = ((0o100000 | mode) << 16)
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            arc.writestr(entry, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+
+
+def make_tar(members: list[tuple[str, bytes, int]], output: Path) -> None:
+    with output.open("wb") as target:
+        with gzip.GzipFile(fileobj=target, mode="wb", filename="", mtime=0, compresslevel=9) as gz:
+            with tarfile.open(fileobj=gz, mode="w", format=tarfile.USTAR_FORMAT) as arc:
+                for name, data, mode in sorted(members):
+                    entry = tarfile.TarInfo(name=name)
+                    entry.size = len(data)
+                    entry.mode = mode
+                    entry.mtime = 0
+                    entry.uid = entry.gid = 0
+                    entry.uname = entry.gname = ""
+                    arc.addfile(entry, io.BytesIO(data))
+
+
+def build(binary: Path, destination: Path, target: str) -> Path:
+    version = workspace_version()
+    prefix = f"stellaryn-{version}-{target}"
+    destination.mkdir(parents=True, exist_ok=True)
+    extension = ".zip" if "windows" in target else ".tar.gz"
+    archive = destination / f"{prefix}{extension}"
+    members = fixed_files(binary, prefix)
+    if extension == ".zip":
+        make_zip(members, archive)
+    else:
+        make_tar(members, archive)
+    archive_digest = sha256(archive.read_bytes())
+    (destination / f"{archive.name}.sha256").write_text(
+        f"{archive_digest}  {archive.name}\n", encoding="utf-8", newline="\n"
+    )
+    manifest = {
+        "schema_version": 1,
+        "package": "stellaryn",
+        "version": version,
+        "target": target,
+        "archive": archive.name,
+        "sha256": archive_digest,
+        "binary_sha256": sha256(binary.read_bytes()),
+        "files": [name.removeprefix(prefix + "/") for name, _, _ in sorted(members)],
+        "status": "pre-release CI artifact; not a signed or notarized release",
+    }
+    (destination / f"{archive.name}.manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8", newline="\n",
+    )
+    print(f"Built {archive} (sha256 {archive_digest})")
     return archive
 
 
-def read_verified_entries(archive: Path, version: str, target: str) -> dict[str, bytes]:
-    """Read a trusted-by-checksum bundle safely, without filesystem extraction."""
-    prefix = release_basename(version, target) + "/"
-    files: dict[str, bytes] = {}
-    total = 0
-
+def extract_expected(archive: Path, folder: Path, prefix: str, members: set[str]) -> None:
+    """Extract only exact expected member names; reject unexpected archives."""
     if archive.suffix == ".zip":
-        with zipfile.ZipFile(archive) as source:
-            for member in source.infolist():
-                if member.is_dir():
-                    continue
-                name = member.filename
-                if not name.startswith(prefix) or name in files or name.endswith("/"):
-                    raise ValueError(f"unexpected or duplicate bundle path: {name}")
-                relative = name[len(prefix):]
-                if relative not in set(FILES) | {binary_name(target)}:
-                    raise ValueError(f"unrecognized bundle member: {relative}")
-                total += member.file_size
-                if total > MAX_UNPACKED_SIZE:
-                    raise ValueError("release bundle exceeds extracted-size limit")
-                files[relative] = source.read(member)
+        with zipfile.ZipFile(archive) as arc:
+            if len(arc.namelist()) != len(set(arc.namelist())):
+                raise ValueError("duplicate members in archive")
+            if set(arc.namelist()) != members:
+                raise ValueError("archive contents do not match manifest")
+            for member in arc.infolist():
+                if member.is_dir() or member.file_size > MAX_EXTRACTED_BYTES:
+                    raise ValueError("unexpected directory or oversized archive member")
+                target = folder / member.filename
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(arc.read(member))
+                if member.filename.endswith("/stellaryn"):
+                    target.chmod(0o755)
     else:
-        with tarfile.open(archive, "r:gz") as source:
-            for member in source.getmembers():
-                if not member.isfile():
-                    raise ValueError(f"non-regular bundle member: {member.name}")
-                name = member.name
-                if not name.startswith(prefix) or name in files:
-                    raise ValueError(f"unexpected or duplicate bundle path: {name}")
-                relative = name[len(prefix):]
-                if relative not in set(FILES) | {binary_name(target)}:
-                    raise ValueError(f"unrecognized bundle member: {relative}")
-                total += member.size
-                if total > MAX_UNPACKED_SIZE:
-                    raise ValueError("release bundle exceeds extracted-size limit")
-                opened = source.extractfile(member)
-                if opened is None:
-                    raise ValueError(f"could not read bundle member: {name}")
-                files[relative] = opened.read()
-
-    expected = set(FILES) | {binary_name(target)}
-    if files.keys() != expected:
-        raise ValueError(f"bundle members mismatch: {sorted(files)} != {sorted(expected)}")
-    return files
+        with tarfile.open(archive, "r:gz") as arc:
+            names = arc.getnames()
+            if len(names) != len(set(names)) or set(names) != members:
+                raise ValueError("archive contents do not match manifest")
+            for member in arc.getmembers():
+                if not member.isfile() or member.size > MAX_EXTRACTED_BYTES:
+                    raise ValueError("unexpected member type or oversized archive member")
+                input_file = arc.extractfile(member)
+                if input_file is None:
+                    raise ValueError("missing archive member data")
+                data = input_file.read(MAX_EXTRACTED_BYTES + 1)
+                if len(data) != member.size:
+                    raise ValueError("archive member truncated")
+                target = folder / member.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+                target.chmod(member.mode)
 
 
-def verify_bundle(root: Path, dist: Path, version: str, target: str) -> None:
-    name = archive_name(version, target)
-    archive = dist / name
-    content = archive.read_bytes()
-    checksum_text = (dist / f"{name}.sha256").read_text(encoding="ascii")
-    expected_line = f"{sha256(content)}  {name}\n"
-    if checksum_text != expected_line:
-        raise ValueError(f"SHA-256 checksum mismatch: {name}")
-    files = read_verified_entries(archive, version, target)
-    compiled = (root / "target" / "release" / binary_name(target)).read_bytes()
-    if sha256(files[binary_name(target)]) != sha256(compiled):
-        raise ValueError("packaged binary is not identical to the native release build")
-
-    # Execute the *packaged* executable, not the unarchived target/release binary.
-    with tempfile.TemporaryDirectory() as temp:
-        target_binary = Path(temp) / binary_name(target)
-        target_binary.write_bytes(files[binary_name(target)])
-        if os.name != "nt":
-            target_binary.chmod(0o755)
-        command = [str(target_binary)]
-        output = subprocess.run(command + ["--version"], capture_output=True, text=True, timeout=25)
-        if output.returncode or version not in output.stdout:
-            raise RuntimeError(f"packaged --version failed: {output.stdout} {output.stderr}")
-        help_output = subprocess.run(command + ["--help"], capture_output=True, text=True, timeout=25)
-        if help_output.returncode or "compare" not in help_output.stdout or "git" not in help_output.stdout:
-            raise RuntimeError(f"packaged --help failed: {help_output.stderr}")
-
-        original = root / "tests/fixtures/real/compiled_add_i128.wasm"
-        changed = root / "tests/fixtures/real/compiled_add_u128.wasm"
-        args = ["compare", str(original), str(changed), "--format", "json"]
-        report = subprocess.run(command + args + ["--fail-on", "never"], capture_output=True, text=True, timeout=25)
-        if report.returncode != 0 or report.stderr:
-            raise RuntimeError(f"packaged JSON smoke failed: {report.stderr}")
-        findings = json.loads(report.stdout)["analysis"]
-        expected_ids = [
-            "FUNCTION_PARAMETER_TYPE_CHANGED",
-            "FUNCTION_PARAMETER_TYPE_CHANGED",
-            "FUNCTION_OUTPUT_TYPE_CHANGED",
-        ]
-        ids = [finding["rule"]["id"] for finding in findings["findings"]]
-        if findings["verdict"] != "INCOMPATIBLE" or sorted(ids) != sorted(expected_ids):
-            raise ValueError("packaged binary missed known real-WASM breaking ABI findings")
-        denied = subprocess.run(command + args, capture_output=True, text=True, timeout=25)
-        if denied.returncode != 2 or denied.stderr:
-            raise ValueError("packaged binary did not enforce default breaking exit 2")
-        same = subprocess.run(
-            command + ["compare", str(original), str(original), "--format", "json"],
-            capture_output=True, text=True, timeout=25
+def run_cli(command: list[str], expected_exit: int) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(
+        command, capture_output=True, text=True, timeout=60, check=False
+    )
+    if result.returncode != expected_exit:
+        raise ValueError(
+            f"CLI exited {result.returncode}, expected {expected_exit}: "
+            f"stderr={result.stderr[:600]} stdout={result.stdout[:300]}"
         )
-        if same.returncode != 0 or json.loads(same.stdout)["analysis"]["verdict"] != "COMPATIBLE":
-            raise ValueError("packaged binary failed valid same-artifact comparison")
-    print(f"VERIFIED {name}: checksum, members, executable, help, JSON, breaking + self-diff")
+    return result
+
+
+def verify(archive: Path) -> None:
+    manifest_file = archive.with_name(archive.name + ".manifest.json")
+    checksum_file = archive.with_name(archive.name + ".sha256")
+    manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+    version = workspace_version()
+    target = rust_target()
+    prefix = f"stellaryn-{version}-{target}"
+    if (
+        manifest["schema_version"] != 1
+        or manifest["version"] != version
+        or manifest["target"] != target
+        or manifest["archive"] != archive.name
+        or not archive.name.startswith(prefix)
+    ):
+        raise ValueError("package version/target/filename mismatch")
+    digest = sha256(archive.read_bytes())
+    if digest != manifest["sha256"]:
+        raise ValueError("archive checksum mismatches manifest")
+    if checksum_file.read_text(encoding="utf-8").strip() != f"{digest}  {archive.name}":
+        raise ValueError("archive checksum file mismatches manifest")
+    members = {f"{prefix}/{name}" for name in manifest["files"]}
+    expected = {"LICENSE", "README.md", "docs/getting-started.md", "docs/limitations.md", "docs/cli-reports.md"}
+    binary_name = "stellaryn.exe" if "windows" in target else "stellaryn"
+    expected.add(binary_name)
+    if set(manifest["files"]) != expected:
+        raise ValueError("unexpected packaged files")
+    with tempfile.TemporaryDirectory(prefix="stellaryn-release-") as tmp:
+        root = Path(tmp)
+        extract_expected(archive, root, prefix, members)
+        binary = root / prefix / binary_name
+        if sha256(binary.read_bytes()) != manifest["binary_sha256"]:
+            raise ValueError("binary bytes mismatch manifest")
+        version_output = run_cli([str(binary), "--version"], 0)
+        if version not in version_output.stdout:
+            raise ValueError("packaged binary reports wrong version")
+        good = run_cli(
+            [str(binary), "compare", str(FIXTURE_SIGNED), str(FIXTURE_SIGNED),
+             "--format", "json"], 0,
+        )
+        good_report = json.loads(good.stdout)
+        if good_report["analysis"]["verdict"] != "COMPATIBLE":
+            raise ValueError("self-comparison did not yield COMPATIBLE")
+        bad = run_cli(
+            [str(binary), "compare", str(FIXTURE_SIGNED), str(FIXTURE_UNSIGNED),
+             "--format", "json"], 2,
+        )
+        bad_report = json.loads(bad.stdout)
+        if (
+            bad_report["analysis"]["verdict"] != "INCOMPATIBLE"
+            or bad_report["analysis"]["totals"]["breaking"] != 3
+        ):
+            raise ValueError("packaged binary missed known breaking changes")
+    print(f"Verified {archive.name}: sha256, manifest, executable, and real WASM smoke cases")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("build", "verify"))
-    parser.add_argument("--dist", default="dist", type=Path)
-    parser.add_argument("--target", default=None, help="Native Rust triple (derived from rustc by default)")
+    sub = parser.add_subparsers(dest="command", required=True)
+    make = sub.add_parser("build")
+    make.add_argument("--binary", type=Path, required=True)
+    make.add_argument("--out", type=Path, default=Path("dist"))
+    make.add_argument("--target", default=None)
+    check = sub.add_parser("verify")
+    check.add_argument("--archive", type=Path, required=True)
     args = parser.parse_args()
-    version = project_version()
-    target = args.target or host_target()
     try:
         if args.command == "build":
-            create_bundle(ROOT, args.dist, version, target)
+            build(args.binary, args.out, args.target or rust_target())
         else:
-            verify_bundle(ROOT, args.dist, version, target)
-    except (ValueError, OSError, RuntimeError, KeyError, zipfile.BadZipFile, tarfile.TarError) as error:
-        print(f"release package check failed: {error}", file=sys.stderr)
+            verify(args.archive)
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError, json.JSONDecodeError) as error:
+        print(f"release package error: {error}", file=sys.stderr)
         return 1
     return 0
 
