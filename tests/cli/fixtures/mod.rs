@@ -1,7 +1,7 @@
 //! Deterministic Soroban XDR test fixtures embedded in valid minimal WASM.
 //! These modules exercise contractspecv0; they are NOT deployable contracts.
 
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, dead_code)]
 
 use stellar_xdr::{
     Limits, ScSpecEntry, ScSpecEventDataFormat, ScSpecEventParamLocationV0, ScSpecEventParamV0,

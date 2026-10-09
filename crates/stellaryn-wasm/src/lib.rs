@@ -18,6 +18,7 @@ use stellaryn_core::{
     Parameter, StructField, TypeRef, UserType, UserTypeKind, VariantField,
 };
 use thiserror::Error;
+use wasmparser::{Parser, Payload};
 
 pub const COMPONENT: &str = "stellaryn-wasm";
 pub const SOROBAN_SPEC_VERSION: &str = "28.0.0";
@@ -37,6 +38,12 @@ pub enum WasmError {
 
     #[error("normalized contract interface is invalid: {0}")]
     InvalidInterface(#[from] InterfaceValidationError),
+
+    #[error("contractspecv0 section contains no contract specification entries")]
+    EmptyContractSpec,
+
+    #[error("multiple contractspecv0 sections found; refusing ambiguous extraction")]
+    DuplicateContractSpec,
 }
 
 pub fn extract_interface_from_path(path: impl AsRef<Path>) -> Result<ContractInterface, WasmError> {
@@ -49,7 +56,28 @@ pub fn extract_interface_from_path(path: impl AsRef<Path>) -> Result<ContractInt
 }
 
 pub fn extract_interface_from_wasm(wasm: &[u8]) -> Result<ContractInterface, WasmError> {
+    // The official reader stops at the first matching section. Validate the
+    // entire Wasm and reject duplicate sections to avoid silently discarding
+    // trailing bytes or alternate public specifications.
+    let mut spec_sections = 0_u32;
+    for payload in Parser::new(0).parse_all(wasm) {
+        let payload = payload.map_err(|error| {
+            WasmError::ContractSpec(soroban_spec::read::FromWasmError::Read(error))
+        })?;
+        if let Payload::CustomSection(section) = payload {
+            if section.name() == "contractspecv0" {
+                spec_sections += 1;
+                if spec_sections > 1 {
+                    return Err(WasmError::DuplicateContractSpec);
+                }
+            }
+        }
+    }
+
     let entries = soroban_spec::read::from_wasm(wasm)?;
+    if entries.is_empty() {
+        return Err(WasmError::EmptyContractSpec);
+    }
     normalize_spec_entries(&entries)
 }
 

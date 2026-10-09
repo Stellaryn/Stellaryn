@@ -9,6 +9,7 @@ description = "Verified Soroban Wasm contract-spec extraction for Stellaryn"
 [dependencies]
 soroban-spec.workspace = true
 stellar-xdr.workspace = true
+wasmparser.workspace = true
 stellaryn-core.workspace = true
 thiserror.workspace = true
 
