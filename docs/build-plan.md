@@ -14,7 +14,7 @@ Inspect exact Soroban SDK/XDR/Stellar CLI behavior before implementing extractio
 
 ## Phase 4 — Function compatibility diff
 
-Classify removals, additions, parameter order/type changes, and return-type changes.
+Implemented: deterministic function additions/removals, parameter count/order/name/type changes, and output count/type changes.
 
 ## Phase 5 — Custom type compatibility diff
 

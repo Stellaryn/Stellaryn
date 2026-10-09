@@ -4,10 +4,12 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
-description = "Stellaryn workspace component"
+description = "Deterministic Soroban contract compatibility diff engine for Stellaryn"
 
 [dependencies]
+serde.workspace = true
 stellaryn-core.workspace = true
+thiserror.workspace = true
 
 [lints]
 workspace = true

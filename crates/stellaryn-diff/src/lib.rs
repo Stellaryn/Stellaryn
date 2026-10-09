@@ -1,17 +1,13 @@
-//! stellaryn-diff component boundary.
+//! Deterministic compatibility comparison for normalized Soroban interfaces.
 //!
-//! Phase 1 intentionally contains no production parser, comparator, or renderer
-//! implementation here. Later phases will add verified behavior behind this
-//! crate boundary.
+//! Phase 4 implements function-level compatibility only. Custom types, errors,
+//! and events are intentionally deferred to later phases.
+
+mod function;
+
+pub use function::{
+    diff_functions, ChangeClassification, DiffError, FunctionChange, FunctionChangeId,
+    FunctionDiff,
+};
 
 pub const COMPONENT: &str = "stellaryn-diff";
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn component_name_is_stable() {
-        assert_eq!(COMPONENT, "stellaryn-diff");
-    }
-}
