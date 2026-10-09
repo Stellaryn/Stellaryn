@@ -268,14 +268,12 @@ fn truncation_of_real_compiled_artifact_fails_instead_of_reporting_compatible() 
 
 #[test]
 fn independently_compiled_add_variants_detect_real_parameter_type_break() {
-    let signed = extract_interface_from_wasm(
-        include_bytes!("../fixtures/real/compiled_add_i128.wasm"),
-    )
-    .unwrap();
-    let unsigned = extract_interface_from_wasm(
-        include_bytes!("../fixtures/real/compiled_add_u128.wasm"),
-    )
-    .unwrap();
+    let signed =
+        extract_interface_from_wasm(include_bytes!("../fixtures/real/compiled_add_i128.wasm"))
+            .unwrap();
+    let unsigned =
+        extract_interface_from_wasm(include_bytes!("../fixtures/real/compiled_add_u128.wasm"))
+            .unwrap();
 
     let signed_add = signed.functions.iter().find(|f| f.name == "add").unwrap();
     let unsigned_add = unsigned.functions.iter().find(|f| f.name == "add").unwrap();
@@ -303,7 +301,9 @@ fn independently_compiled_add_variants_detect_real_parameter_type_break() {
     assert!(cli.stderr.is_empty());
     let json: serde_json::Value = serde_json::from_slice(&cli.stdout).unwrap();
     assert_eq!(json["analysis"]["verdict"], "INCOMPATIBLE");
-    assert!(json["analysis"]["findings"].as_array().unwrap().iter().any(
-        |finding| finding["rule"]["id"] == "FUNCTION_PARAMETER_TYPE_CHANGED"
-    ));
+    assert!(json["analysis"]["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|finding| finding["rule"]["id"] == "FUNCTION_PARAMETER_TYPE_CHANGED"));
 }
