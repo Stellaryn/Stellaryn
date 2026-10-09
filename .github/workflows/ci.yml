@@ -23,6 +23,11 @@ jobs:
           rustup toolchain install 1.96.0 --profile minimal --component rustfmt --component clippy
           rustup default 1.96.0
 
+      - name: Documentation checks
+        run: |
+          python3 scripts/check_docs.py
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+
       - name: Formatting
         run: cargo fmt --all -- --check
 
