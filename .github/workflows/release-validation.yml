@@ -1,0 +1,98 @@
+name: Cross-platform release validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package and test / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact: linux-x86_64
+            binary: target/release/stellaryn
+          - os: macos-14
+            artifact: macos-x86_64
+            binary: target/release/stellaryn
+          - os: windows-2022
+            artifact: windows-x86_64
+            binary: target/release/stellaryn.exe
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned Rust toolchain
+        shell: bash
+        run: |
+          rustup toolchain install 1.96.0 --profile minimal --component rustfmt --component clippy
+          rustup default 1.96.0
+
+      - name: Confirm toolchain and target
+        shell: bash
+        run: |
+          rustc -vV
+          cargo --version
+          python --version
+
+      - name: Documentation and packaging unit checks
+        run: |
+          python scripts/check_docs.py
+          python -m unittest discover -s scripts -p 'test_*.py'
+
+      - name: Check Rust formatting
+        run: cargo fmt --all -- --check
+
+      - name: Check Rust lints
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: Test all workspace crates and CLI
+        run: cargo test --workspace --all-features
+
+      - name: Compile optimized release binary
+        run: cargo build --release -p stellaryn-cli
+
+      - name: Build versioned package and checksum
+        run: python scripts/package_release.py build --binary "${{ matrix.binary }}" --out dist
+
+      - name: Verify extracted executable and real Soroban WASM
+        run: python scripts/package_release.py verify --out dist
+
+      - name: Preserve verified package and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellaryn-${{ matrix.artifact }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Capture first-run dependency lockfile for pinning
+        if: matrix.os == 'ubuntu-24.04'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64
+          import textwrap
+          from pathlib import Path
+          locked = Path("Cargo.lock").read_bytes()
+          print("STELLARYN_LOCKFILE_BEGIN")
+          for line in textwrap.wrap(base64.b64encode(locked).decode("ascii"), 120):
+              print("STELLARYN_LOCKFILE_LINE:" + line)
+          print("STELLARYN_LOCKFILE_END")
+          PY
