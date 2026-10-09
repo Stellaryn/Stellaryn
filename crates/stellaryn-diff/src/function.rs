@@ -198,11 +198,7 @@ fn diff_parameters(before: &Function, after: &Function, changes: &mut Vec<Functi
                     "Parameter '{}' at index {} was removed from function '{}'.",
                     old.name, index, before.name
                 ),
-                before_evidence: Some(format!(
-                    "{}: {}",
-                    old.name,
-                    old.type_ref.display_name()
-                )),
+                before_evidence: Some(format!("{}: {}", old.name, old.type_ref.display_name())),
                 after_evidence: None,
             }),
             Some((new, _)) if old.type_ref != new.type_ref => {
@@ -223,11 +219,7 @@ fn diff_parameters(before: &Function, after: &Function, changes: &mut Vec<Functi
                     new.name, index, after.name
                 ),
                 before_evidence: None,
-                after_evidence: Some(format!(
-                    "{}: {}",
-                    new.name,
-                    new.type_ref.display_name()
-                )),
+                after_evidence: Some(format!("{}: {}", new.name, new.type_ref.display_name())),
             });
         }
     }
@@ -262,9 +254,10 @@ fn diff_parameters(before: &Function, after: &Function, changes: &mut Vec<Functi
 
 fn same_parameter_shapes(before: &[Parameter], after: &[Parameter]) -> bool {
     before.len() == after.len()
-        && before.iter().zip(after).all(|(old, new)| {
-            old.name == new.name && old.type_ref == new.type_ref
-        })
+        && before
+            .iter()
+            .zip(after)
+            .all(|(old, new)| old.name == new.name && old.type_ref == new.type_ref)
 }
 
 fn is_pure_reorder(before: &[Parameter], after: &[Parameter]) -> bool {
