@@ -1,6 +1,10 @@
 # Getting started
 
-## Prerequisites
+## Install from the published release
+
+[Stellaryn v0.1.0](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) provides verified archives for Linux x86_64 (`.tar.gz`), Windows x86_64/MSVC (`.zip`), and macOS Apple Silicon (`.tar.gz`), each with a matching `.sha256` file. Download both files for your platform from that release, verify the checksum **before** extracting or running the binary, and consult [release and checksum instructions](releasing.md). Not all operating system versions or CPU architectures have been tested.
+
+## Prerequisites for building from source
 
 - Git, to clone the repository and (optionally) compare committed WASM.
 - The pinned **Rust 1.96.0** toolchain; `rust-toolchain.toml` records the repository's version.
@@ -17,7 +21,7 @@ cargo build --locked --release -p stellaryn-cli
 ./target/release/stellaryn --help
 ```
 
-On Windows, the executable is `target/release/stellaryn.exe`. The [native release-candidate workflow](https://github.com/Stellaryn/Stellaryn/actions/workflows/portability.yml) builds, tests, packages and smoke-tests Linux, Windows and macOS artifacts. These are CI-verified release candidates, **not** a published GitHub Release or certification of every machine and OS version.
+On Windows, the executable is `target/release/stellaryn.exe`. The [native release-candidate workflow](https://github.com/Stellaryn/Stellaryn/actions/workflows/portability.yml) separately builds, tests, packages and smoke-tests Linux, Windows and macOS artifacts. These temporary CI artifacts are distinct from the [published v0.1.0 GitHub Release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0); neither proves compatibility with every possible machine or OS version.
 
 ## First comparison with checked-in real WASM
 

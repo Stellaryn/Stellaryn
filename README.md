@@ -8,7 +8,7 @@ Stellaryn is a **local-first Rust CLI** that compares the public specifications 
 
 ## Get started
 
-**Status:** Pre-release. Build from source using the pinned Rust 1.96.0 toolchain. Prebuilt binaries are not yet published as a public release.
+**Latest release:** [Stellaryn v0.1.0](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) is published with verified Linux x86_64, Windows x86_64, and macOS Apple Silicon archives and matching SHA-256 checksum files. Download the asset for your platform and verify its checksum before running. Alternatively, build from source with the pinned Rust 1.96.0 toolchain.
 
 ```bash
 git clone https://github.com/Stellaryn/Stellaryn.git
@@ -86,7 +86,7 @@ python3 -m unittest discover -s scripts -p 'test_*.py'
 python3 scripts/real_world_probe.py
 ```
 
-The workspace contains `stellaryn-cli`, `stellaryn-core`, `stellaryn-wasm`, `stellaryn-diff` and `stellaryn-report`. For the design see [architecture](docs/architecture.md). Release archives and checksums, when available in the repository's CI artifacts, are **test builds**, not published stable releases.
+The workspace contains `stellaryn-cli`, `stellaryn-core`, `stellaryn-wasm`, `stellaryn-diff` and `stellaryn-report`. For the design see [architecture](docs/architecture.md). The [v0.1.0 GitHub Release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) provides published binaries and SHA-256 companion files. Separately, GitHub Actions runs can contain short-lived release-candidate artifacts. Neither constitutes a security audit or publisher signature.
 
 ## Contributing and security
 

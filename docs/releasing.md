@@ -1,6 +1,8 @@
-# Native builds, release candidates and artifact checksums
+# Published v0.1.0 release, native builds and checksums
 
-Stellaryn is **pre-release**. The native-platform workflow prepares reviewable, downloadable **release-candidate CI artifacts**; it does not publish a GitHub Release or claim a stable v0.1.0 release. Publishing tags, provenance attestations, signing keys, long-term support and a public release announcement remain separate release decisions.
+**Stellaryn v0.1.0 is published:** [download from its verified GitHub Release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0). GitHub published it on 2026-10-09, with six assets (three native archives and three corresponding `.sha256` files). Its tag resolves to commit [`17de3459ef24641c6544e845e35ba5a7fbcd0f9e`](https://github.com/Stellaryn/Stellaryn/commit/17de3459ef24641c6544e845e35ba5a7fbcd0f9e). The [publishing workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203) completed successfully, including native builds and executable smoke tests on Linux, Windows and macOS, and verification that all six assets were present and their checksums matched.
+
+The regular native-platform workflow **still produces temporary CI release candidates**, independently of the publicly published release. The archives have SHA-256 integrity companions; they are not signed or notarized and have not been certified for every CPU or OS version.
 
 ## Supported CI targets
 
@@ -13,6 +15,20 @@ The [Native release candidates workflow](../.github/workflows/portability.yml) r
 | `macos-latest` | `.tar.gz` | `stellaryn` |
 
 The artifact name includes `rustc -vV`'s *actual host triple*, rather than assuming architecture from the runner label. This is native CI, **not** proof of every possible OS version, CPU target or installation configuration.
+
+## Download and verify the published binaries
+
+At the [v0.1.0 Release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0), select the matching archive and `.sha256` companion:
+
+| Platform | Archive filename |
+| --- | --- |
+| Linux x86_64 | `stellaryn-v0.1.0-x86_64-unknown-linux-gnu.tar.gz` |
+| Windows x86_64/MSVC | `stellaryn-v0.1.0-x86_64-pc-windows-msvc.zip` |
+| macOS Apple Silicon | `stellaryn-v0.1.0-aarch64-apple-darwin.tar.gz` |
+
+Download the archive **and** its `.sha256` file to the same directory. On Linux, run `sha256sum -c ARCHIVE_NAME.sha256`. On macOS, run `shasum -a 256 -c ARCHIVE_NAME.sha256`. Replace `ARCHIVE_NAME` with the exact filename above (including `.tar.gz` or `.zip`). Both commands should print `OK`; stop if verification fails. On Windows, run `Get-FileHash -Algorithm SHA256 -Path .\\ARCHIVE_NAME.zip` in PowerShell and compare the full 64-character hash with the first field of the matching `.sha256` file. Do not execute the binary if they differ.
+
+Each archive contains the platform's executable, README, license and scope limitations. Extract it and run `stellaryn --version` (Windows: `stellaryn.exe --version`). All assets in this release were individually verified by the [publishing workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203); there are no publisher-identity signatures or notarization claims.
 
 ## Reproduce packages from source
 
@@ -63,7 +79,7 @@ The release-candidate workflow checks:
 
 All tests intentionally use **real compiled fixtures** already pinned in the repository. The [fixture provenance](../tests/fixtures/real/README.md) and [scope limitations](limitations.md) remain relevant.
 
-## Download CI candidates
+## Temporary CI release candidates
 
 Open [GitHub Actions](https://github.com/Stellaryn/Stellaryn/actions/workflows/portability.yml), select a completed successful run, and find its `stellaryn-<OS>-<commit>` artifacts. Each upload contains the archive and `.sha256`; checksum validation is also executed before upload.
 
@@ -73,6 +89,6 @@ These are **temporary GitHub Actions artifacts**, not public release downloads. 
 
 - A successful CI run is a necessary portability signal, not a formal security audit or OS compatibility certification.
 - The current native workflow builds each target separately; it does not claim byte-identical binaries across OSes.
-- These candidates are neither notarized nor cryptographically signed with a release-maintainer identity. SHA-256 detects accidental changes when downloaded from a trusted source, but is **not** a signature.
+- The published archives and the temporary CI candidates are neither notarized nor cryptographically signed with a release-maintainer identity. SHA-256 detects modifications when compared with a trusted checksum, but is **not** a signature.
 - The Rust dependency graph should be locked and verified for a reproducible official release. A committed `Cargo.lock` pins the resolution graph; dependency/toolchain changes must be tested and documented.
-- A public tag, consolidated checksums across targets, and a stable published GitHub Release are **not** part of this workflow.
+- The distinct [publish-v0.1.0 workflow](../.github/workflows/publish-v0.1.0.yml) produced the existing public tag and GitHub Release; the regular candidate workflow does not tag or publish. Future releases require a new reviewed publication process.
