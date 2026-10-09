@@ -5,9 +5,9 @@ use stellar_xdr::{
     Limits, ScSpecEntry, ScSpecEventDataFormat, ScSpecEventParamLocationV0, ScSpecEventParamV0,
     ScSpecEventV0, ScSpecFunctionInputV0, ScSpecFunctionV0, ScSpecTypeBytesN, ScSpecTypeDef,
     ScSpecTypeMap, ScSpecTypeOption, ScSpecTypeUdt, ScSpecUdtEnumCaseV0, ScSpecUdtEnumV0,
-    ScSpecUdtErrorEnumCaseV0, ScSpecUdtErrorEnumV0, ScSpecUdtStructFieldV0,
-    ScSpecUdtStructV0, ScSpecUdtUnionCaseTupleV0, ScSpecUdtUnionCaseV0,
-    ScSpecUdtUnionCaseVoidV0, ScSpecUdtUnionV0, ScSymbol, WriteXdr,
+    ScSpecUdtErrorEnumCaseV0, ScSpecUdtErrorEnumV0, ScSpecUdtStructFieldV0, ScSpecUdtStructV0,
+    ScSpecUdtUnionCaseTupleV0, ScSpecUdtUnionCaseV0, ScSpecUdtUnionCaseVoidV0, ScSpecUdtUnionV0,
+    ScSymbol, WriteXdr,
 };
 use stellaryn_core::{EventDataFormat, EventParameterLocation, TypeRef, UserTypeKind};
 use stellaryn_wasm::{
@@ -25,7 +25,7 @@ fn entries() -> Vec<ScSpecEntry> {
             name: symbol("transfer"),
             inputs: vec![
                 ScSpecFunctionInputV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "to".try_into().unwrap(),
                     type_: ScSpecTypeDef::Address,
                 },
@@ -35,7 +35,7 @@ fn entries() -> Vec<ScSpecEntry> {
                     type_: ScSpecTypeDef::I128,
                 },
                 ScSpecFunctionInputV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "memo".try_into().unwrap(),
                     type_: ScSpecTypeDef::Option(Box::new(ScSpecTypeOption {
                         value_type: Box::new(ScSpecTypeDef::String),
@@ -52,12 +52,12 @@ fn entries() -> Vec<ScSpecEntry> {
             name: "Account".try_into().unwrap(),
             fields: vec![
                 ScSpecUdtStructFieldV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "owner".try_into().unwrap(),
                     type_: ScSpecTypeDef::Address,
                 },
                 ScSpecUdtStructFieldV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "hash".try_into().unwrap(),
                     type_: ScSpecTypeDef::BytesN(ScSpecTypeBytesN { n: 32 }),
                 },
@@ -71,11 +71,11 @@ fn entries() -> Vec<ScSpecEntry> {
             name: "Action".try_into().unwrap(),
             cases: vec![
                 ScSpecUdtUnionCaseV0::VoidV0(ScSpecUdtUnionCaseVoidV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "Pause".try_into().unwrap(),
                 }),
                 ScSpecUdtUnionCaseV0::TupleV0(ScSpecUdtUnionCaseTupleV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "Transfer".try_into().unwrap(),
                     type_: vec![ScSpecTypeDef::Address, ScSpecTypeDef::I128]
                         .try_into()
@@ -91,12 +91,12 @@ fn entries() -> Vec<ScSpecEntry> {
             name: "Status".try_into().unwrap(),
             cases: vec![
                 ScSpecUdtEnumCaseV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "Active".try_into().unwrap(),
                     value: 0,
                 },
                 ScSpecUdtEnumCaseV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "Paused".try_into().unwrap(),
                     value: 1,
                 },
@@ -110,12 +110,12 @@ fn entries() -> Vec<ScSpecEntry> {
             name: "ContractError".try_into().unwrap(),
             cases: vec![
                 ScSpecUdtErrorEnumCaseV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "Unauthorized".try_into().unwrap(),
                     value: 2,
                 },
                 ScSpecUdtErrorEnumCaseV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "InsufficientBalance".try_into().unwrap(),
                     value: 1,
                 },
@@ -130,13 +130,13 @@ fn entries() -> Vec<ScSpecEntry> {
             prefix_topics: vec![symbol("transfer")].try_into().unwrap(),
             params: vec![
                 ScSpecEventParamV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "from".try_into().unwrap(),
                     type_: ScSpecTypeDef::Address,
                     location: ScSpecEventParamLocationV0::TopicList,
                 },
                 ScSpecEventParamV0 {
-                    doc: String::new().as_str().try_into().unwrap(),
+                    doc: "".try_into().unwrap(),
                     name: "amount".try_into().unwrap(),
                     type_: ScSpecTypeDef::I128,
                     location: ScSpecEventParamLocationV0::Data,
@@ -193,29 +193,35 @@ fn maps_all_current_spec_entry_categories() {
 
     let function = &interface.functions[0];
     assert_eq!(function.name, "transfer");
-    assert_eq!(function.parameters[0].type_ref, TypeRef::primitive("Address"));
-    assert_eq!(function.parameters[2].type_ref.display_name(), "Option<String>");
+    assert_eq!(
+        function.parameters[0].type_ref,
+        TypeRef::primitive("Address")
+    );
+    assert_eq!(
+        function.parameters[2].type_ref.display_name(),
+        "Option<String>"
+    );
 
     let account = interface
         .types
         .iter()
         .find(|item| item.name == "Account")
         .unwrap();
-    let UserTypeKind::Struct { fields } = &account.definition else {
-        unreachable!();
-    };
-    assert_eq!(fields[1].type_ref, TypeRef::BytesN { length: 32 });
+    assert!(matches!(account.definition, UserTypeKind::Struct { .. }));
+    if let UserTypeKind::Struct { fields } = &account.definition {
+        assert_eq!(fields[1].type_ref, TypeRef::BytesN { length: 32 });
+    }
 
     let action = interface
         .types
         .iter()
         .find(|item| item.name == "Action")
         .unwrap();
-    let UserTypeKind::Enum { variants } = &action.definition else {
-        unreachable!();
-    };
-    assert_eq!(variants[1].fields.len(), 2);
-    assert_eq!(variants[1].fields[0].name, None);
+    assert!(matches!(action.definition, UserTypeKind::Enum { .. }));
+    if let UserTypeKind::Enum { variants } = &action.definition {
+        assert_eq!(variants[1].fields.len(), 2);
+        assert_eq!(variants[1].fields[0].name, None);
+    }
 
     assert_eq!(interface.errors[0].cases[0].value, 1);
     assert_eq!(interface.errors[0].cases[1].value, 2);
