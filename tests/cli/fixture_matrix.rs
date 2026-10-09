@@ -152,11 +152,11 @@ fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
         "union_added" => {
             let item = union_mut(entries);
             let mut cases: Vec<_> = item.cases.iter().cloned().collect();
-            if let ScSpecUdtUnionCaseV0::VoidV0(value) = &mut cases[0] {
+            let mut added = cases[0].clone();
+            if let ScSpecUdtUnionCaseV0::VoidV0(value) = &mut added {
                 value.name = "Resume".try_into().unwrap();
             }
-            let new = cases[0].clone();
-            cases.push(new);
+            cases.push(added);
             item.cases = cases.try_into().unwrap();
         }
         "union_removed" => {
