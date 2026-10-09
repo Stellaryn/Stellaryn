@@ -1,12 +1,27 @@
 #![allow(clippy::unwrap_used)]
 
-use std::{fs, path::Path, process::{Command, Output}};
-use stellar_xdr::{Limits, ScSpecEntry, ScSpecFunctionInputV0, ScSpecFunctionV0, ScSpecTypeDef, ScSymbol, WriteXdr};
+use std::{
+    fs,
+    path::Path,
+    process::{Command, Output},
+};
+use stellar_xdr::{
+    Limits, ScSpecEntry, ScSpecFunctionInputV0, ScSpecFunctionV0, ScSpecTypeDef, ScSymbol, WriteXdr,
+};
 use tempfile::TempDir;
 
 fn git(repo: &Path, args: &[&str]) -> Output {
-    let out = Command::new("git").arg("-C").arg(repo).args(args).output().unwrap();
-    assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args(args)
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     out
 }
 
@@ -32,7 +47,9 @@ fn spec_wasm(kind: ScSpecTypeDef) -> Vec<u8> {
             doc: "".try_into().unwrap(),
             name: "amount".try_into().unwrap(),
             type_: kind,
-        }].try_into().unwrap(),
+        }]
+        .try_into()
+        .unwrap(),
         outputs: vec![ScSpecTypeDef::Bool].try_into().unwrap(),
     });
     let bytes = entry.to_xdr(Limits::none()).unwrap();
@@ -65,9 +82,12 @@ fn setup() -> TempDir {
 
 fn compare(repo: &Path, from: &str, flags: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_stellaryn"))
-        .args(["git", "--repo"]).arg(repo)
+        .args(["git", "--repo"])
+        .arg(repo)
         .args(["--from", from, "--to", "HEAD", "--wasm", "token.wasm"])
-        .args(flags).output().unwrap()
+        .args(flags)
+        .output()
+        .unwrap()
 }
 
 #[test]
@@ -103,7 +123,11 @@ fn unknown_revision_is_analysis_error_even_with_never_policy() {
 #[test]
 fn never_policy_does_not_change_incompatible_verdict() {
     let repo = setup();
-    let out = compare(repo.path(), "v1", &["--fail-on", "never", "--format", "json"]);
+    let out = compare(
+        repo.path(),
+        "v1",
+        &["--fail-on", "never", "--format", "json"],
+    );
     assert_eq!(out.status.code(), Some(0));
     let value: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     assert_eq!(value["analysis"]["verdict"], "INCOMPATIBLE");
@@ -120,11 +144,15 @@ fn ancestry_revisions_are_accepted() {
 fn same_git_revision_is_compatible() {
     let repo = setup();
     let output = Command::new(env!("CARGO_BIN_EXE_stellaryn"))
-        .args(["git", "--repo"]).arg(repo.path())
+        .args(["git", "--repo"])
+        .arg(repo.path())
         .args(["--from", "v1", "--to", "v1", "--wasm", "token.wasm"])
-        .output().unwrap();
+        .output()
+        .unwrap();
     assert_eq!(output.status.code(), Some(0));
-    assert!(String::from_utf8(output.stdout).unwrap().contains("COMPATIBLE"));
+    assert!(String::from_utf8(output.stdout)
+        .unwrap()
+        .contains("COMPATIBLE"));
 }
 
 #[test]
@@ -132,9 +160,11 @@ fn missing_committed_artifact_and_path_traversal_fail() {
     let repo = setup();
     for path in ["missing.wasm", "../token.wasm", "./token.wasm"] {
         let output = Command::new(env!("CARGO_BIN_EXE_stellaryn"))
-            .args(["git", "--repo"]).arg(repo.path())
+            .args(["git", "--repo"])
+            .arg(repo.path())
             .args(["--from", "v1", "--to", "HEAD", "--wasm", path])
-            .output().unwrap();
+            .output()
+            .unwrap();
         assert_eq!(output.status.code(), Some(1));
         assert!(output.stdout.is_empty());
     }
@@ -144,14 +174,25 @@ fn missing_committed_artifact_and_path_traversal_fail() {
 fn renamed_wasm_path_can_be_supplied_per_revision() {
     let repo = setup();
     fs::create_dir_all(repo.path().join("releases")).unwrap();
-    fs::rename(repo.path().join("token.wasm"), repo.path().join("releases/new token.wasm")).unwrap();
+    fs::rename(
+        repo.path().join("token.wasm"),
+        repo.path().join("releases/new token.wasm"),
+    )
+    .unwrap();
     git(repo.path(), &["add", "-A"]);
     git(repo.path(), &["commit", "-qm", "move artifact"]);
     let output = Command::new(env!("CARGO_BIN_EXE_stellaryn"))
-        .args(["git", "--repo"]).arg(repo.path())
+        .args(["git", "--repo"])
+        .arg(repo.path())
         .args(["--from", "v1", "--to", "HEAD", "--wasm", "token.wasm"])
-        .args(["--after-wasm", "releases/new token.wasm", "--format", "json"])
-        .output().unwrap();
+        .args([
+            "--after-wasm",
+            "releases/new token.wasm",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
     assert_eq!(output.status.code(), Some(2));
     let data: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(data["after"], "git:HEAD:releases/new token.wasm");
@@ -163,10 +204,16 @@ fn corrupt_committed_target_is_an_error_even_with_never() {
     fs::write(repo.path().join("token.wasm"), b"invalid").unwrap();
     git(repo.path(), &["add", "-A"]);
     git(repo.path(), &["commit", "-qm", "malformed artifact"]);
-    let output = compare(repo.path(), "v1", &["--fail-on", "never", "--format", "json"]);
+    let output = compare(
+        repo.path(),
+        "v1",
+        &["--fail-on", "never", "--format", "json"],
+    );
     assert_eq!(output.status.code(), Some(1));
     assert!(output.stdout.is_empty());
-    assert!(String::from_utf8(output.stderr).unwrap().contains("after Git artifact specification"));
+    assert!(String::from_utf8(output.stderr)
+        .unwrap()
+        .contains("after Git artifact specification"));
 }
 
 #[test]

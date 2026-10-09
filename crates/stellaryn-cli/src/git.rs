@@ -31,10 +31,7 @@ pub enum GitArtifactError {
     },
 
     #[error("Git returned an invalid blob size for '{revision}:{path}'")]
-    InvalidBlobSize {
-        revision: String,
-        path: String,
-    },
+    InvalidBlobSize { revision: String, path: String },
 
     #[error("Git blob '{revision}:{path}' exceeds the 32 MiB limit (actual size: {size})")]
     TooLarge {
@@ -64,9 +61,9 @@ fn validate_artifact_path(path: &str) -> Result<(), GitArtifactError> {
         || path.contains(':')
         || path.contains('\\')
         || path.chars().any(char::is_control)
-        || path.split('/').any(|component| {
-            component.is_empty() || component == "." || component == ".."
-        })
+        || path
+            .split('/')
+            .any(|component| component.is_empty() || component == "." || component == "..")
     {
         return Err(GitArtifactError::InvalidPath {
             path: path.to_owned(),
@@ -76,7 +73,11 @@ fn validate_artifact_path(path: &str) -> Result<(), GitArtifactError> {
 }
 
 fn git(repo: &Path, args: &[&str], operation: &'static str) -> Result<Output, GitArtifactError> {
-    let output = Command::new("git").arg("-C").arg(repo).args(args).output()?;
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args(args)
+        .output()?;
     if output.status.success() {
         Ok(output)
     } else {
@@ -166,8 +167,14 @@ mod tests {
     #[test]
     fn rejects_traversal_absolute_and_ambiguous_git_paths() {
         for path in [
-            "", "/tmp/contract.wasm", "../escape.wasm", "a/../token.wasm",
-            "a//token.wasm", "./token.wasm", "a\\token.wasm", "C:token.wasm",
+            "",
+            "/tmp/contract.wasm",
+            "../escape.wasm",
+            "a/../token.wasm",
+            "a//token.wasm",
+            "./token.wasm",
+            "a\\token.wasm",
+            "C:token.wasm",
             "token\n.wasm",
         ] {
             assert!(validate_artifact_path(path).is_err());

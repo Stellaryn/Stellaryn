@@ -191,20 +191,18 @@ fn run(cli: Cli) -> Result<i32, CliError> {
             fail_on,
         }) => {
             let target_wasm = after_wasm.as_deref().unwrap_or(&wasm);
-            let old_bytes = read_git_wasm(&repo, &from, &wasm).map_err(|source| {
-                CliError::GitBefore {
+            let old_bytes =
+                read_git_wasm(&repo, &from, &wasm).map_err(|source| CliError::GitBefore {
                     revision: from.clone(),
                     path: wasm.clone(),
                     source,
-                }
-            })?;
-            let new_bytes = read_git_wasm(&repo, &to, target_wasm).map_err(|source| {
-                CliError::GitAfter {
+                })?;
+            let new_bytes =
+                read_git_wasm(&repo, &to, target_wasm).map_err(|source| CliError::GitAfter {
                     revision: to.clone(),
                     path: target_wasm.to_owned(),
                     source,
-                }
-            })?;
+                })?;
             let old = extract_interface_from_wasm(&old_bytes).map_err(|source| {
                 CliError::GitSpecBefore {
                     revision: from.clone(),
@@ -229,7 +227,9 @@ fn run(cli: Cli) -> Result<i32, CliError> {
             )
         }
         None => {
-            println!("Use 'stellaryn compare --help' or 'stellaryn git --help' to analyze contracts.");
+            println!(
+                "Use 'stellaryn compare --help' or 'stellaryn git --help' to analyze contracts."
+            );
             Ok(0)
         }
     }
