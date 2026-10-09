@@ -1,0 +1,56 @@
+name: Compatibility classification / false positive or negative
+description: Challenge a finding with verifiable ABI/spec evidence
+title: "[Compatibility]: "
+labels: ["compatibility", "needs-evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Claims about Soroban ABI behavior need verifiable XDR/SDK evidence. This is a public issue: never upload secret keys, private contract source, or exploitation details.
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What looks wrong?
+      options:
+        - Missed breaking change (possible false negative)
+        - Incorrect breaking/review finding (possible false positive)
+        - Incorrect extraction/normalization
+        - Rule semantics question
+        - Other or uncertain
+    validations:
+      required: true
+  - type: textarea
+    id: before
+    attributes:
+      label: Before and after contract specification
+      description: Public WASM URLs pinned to commits and hashes, or minimal normalized/XDR example.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed output
+      description: CLI command, report schema, actual verdict/rule IDs/subjects and exit code.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Expected finding and evidence
+      description: Explain why the proposed classification follows from the SDK/XDR specification or verified consumer behavior. Note uncertainties.
+    validations:
+      required: true
+  - type: textarea
+    id: edgecases
+    attributes:
+      label: Negative and boundary cases
+      description: What neighboring changes should *not* trigger this rule?
+    validations:
+      required: false
+  - type: checkboxes
+    id: safe
+    attributes:
+      label: Public disclosure
+      options:
+        - label: The examples contain no secrets or proprietary artifacts.
+          required: true

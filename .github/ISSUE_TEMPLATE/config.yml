@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/Stellaryn/Stellaryn/blob/main/docs/README.md
+    about: Read the getting-started guide, limitations and troubleshooting first.
+  - name: Reporting sensitive security issues
+    url: https://github.com/Stellaryn/Stellaryn/blob/main/SECURITY.md
+    about: Request a private maintainer reporting channel. Never put vulnerability details in a public issue.

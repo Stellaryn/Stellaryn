@@ -1,0 +1,26 @@
+name: Feature or documentation request
+description: Propose a focused improvement grounded in a developer workflow
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Problem and use case
+      description: Who needs this, and what existing Stellaryn workflow cannot do?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include CLI/library shape and alternatives; avoid inventing unverified Stellar APIs.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance and edge cases
+      description: How should we test success, failure and backwards compatibility?
+    validations:
+      required: false

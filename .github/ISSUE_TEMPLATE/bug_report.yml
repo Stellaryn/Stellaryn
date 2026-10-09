@@ -1,0 +1,53 @@
+name: Bug report
+description: Reproducible error in the CLI, extraction, or reports
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not post secrets, proprietary WASM/source, or exploit details. For a security-sensitive report, read SECURITY.md and contact maintainers privately.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and impact.
+      placeholder: The CLI failed while comparing two public WASM fixtures...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Exact command, public fixture links/commit SHAs, or minimal XDR-based fixture.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior and actual result
+      description: Include actual exit code, report/rule IDs and stdout/stderr (redacted).
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit SHA
+      placeholder: git rev-parse HEAD
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS, Rust version and toolchain
+      placeholder: Ubuntu 24.04, rustc 1.96.0, stellar-xdr 28.0.0
+    validations:
+      required: true
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Safe to share?
+      options:
+        - label: I removed secrets and proprietary contract inputs from this report.
+          required: true
