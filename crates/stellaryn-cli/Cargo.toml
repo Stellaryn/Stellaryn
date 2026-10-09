@@ -23,6 +23,7 @@ thiserror.workspace = true
 serde_json.workspace = true
 stellar-xdr.workspace = true
 tempfile = "3"
+wasmparser.workspace = true
 
 [lints]
 workspace = true
@@ -46,3 +47,7 @@ path = "../../tests/cli/fixture_matrix.rs"
 [[test]]
 name = "invalid_fixtures"
 path = "../../tests/cli/invalid_fixtures.rs"
+
+[[test]]
+name = "real_world"
+path = "../../tests/cli/real_world.rs"
