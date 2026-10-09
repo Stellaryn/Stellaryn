@@ -3,7 +3,7 @@
 use stellaryn_core::{
     AnalysisSource, ContractInterface, EnumVariant, ErrorCase, ErrorDefinition, EventDataFormat,
     EventDefinition, EventParameter, EventParameterLocation, Function, InterfaceValidationError,
-    Parameter, StructField, TypeRef, UserType, UserTypeKind, VariantField,
+    Parameter, StructField, TypeRef, UserType, UserTypeKind,
     INTERFACE_SCHEMA_VERSION,
 };
 
