@@ -5,8 +5,7 @@ use std::path::Path;
 use std::process::{Command, Output};
 
 use stellar_xdr::{
-    Limits, ScSpecEntry, ScSpecFunctionInputV0, ScSpecFunctionV0, ScSpecTypeDef, ScSymbol,
-    WriteXdr,
+    Limits, ScSpecEntry, ScSpecFunctionInputV0, ScSpecFunctionV0, ScSpecTypeDef, ScSymbol, WriteXdr,
 };
 use tempfile::TempDir;
 
@@ -63,7 +62,11 @@ fn write_fixture(folder: &Path, name: &str, parameter_name: &str, ty: ScSpecType
 
 fn invoke(before: &str, after: &str, additional: &[&str]) -> Output {
     let mut command = binary();
-    command.arg("compare").arg(before).arg(after).args(additional);
+    command
+        .arg("compare")
+        .arg(before)
+        .arg(after)
+        .args(additional);
     command.output().unwrap()
 }
 
@@ -150,7 +153,9 @@ fn review_rename_passes_default_but_fails_on_review() {
     assert_eq!(json["analysis"]["verdict"], "REVIEW_REQUIRED");
     let strict = invoke(&before, &after, &["--fail-on", "review"]);
     assert_eq!(strict.status.code(), Some(2));
-    assert!(String::from_utf8(strict.stdout).unwrap().contains("REVIEW_REQUIRED"));
+    assert!(String::from_utf8(strict.stdout)
+        .unwrap()
+        .contains("REVIEW_REQUIRED"));
 }
 
 #[test]
@@ -170,7 +175,11 @@ fn invalid_wasm_before_returns_error_without_json() {
     let before = folder.path().join("invalid.wasm");
     fs::write(&before, b"not-wasm").unwrap();
     let after = write_fixture(folder.path(), "new.wasm", "amount", ScSpecTypeDef::U128);
-    let result = invoke(before.to_str().unwrap(), &after, &["--format", "json", "--fail-on", "never"]);
+    let result = invoke(
+        before.to_str().unwrap(),
+        &after,
+        &["--format", "json", "--fail-on", "never"],
+    );
     assert_eq!(result.status.code(), Some(1));
     assert!(result.stdout.is_empty());
     assert!(String::from_utf8(result.stderr)
@@ -206,10 +215,7 @@ fn wasm_without_contract_spec_is_not_misclassified_compatible() {
 fn malformed_cli_format_and_policy_arguments_fail_without_results() {
     let folder = TempDir::new().unwrap();
     let path = write_fixture(folder.path(), "old.wasm", "amount", ScSpecTypeDef::I128);
-    for args in [
-        vec!["--format", "xml"],
-        vec!["--fail-on", "anything"],
-    ] {
+    for args in [vec!["--format", "xml"], vec!["--fail-on", "anything"]] {
         let result = invoke(&path, &path, &args);
         assert_eq!(result.status.code(), Some(2));
         assert!(result.stdout.is_empty());
@@ -219,8 +225,18 @@ fn malformed_cli_format_and_policy_arguments_fail_without_results() {
 #[test]
 fn filenames_with_spaces_are_supported_without_a_shell() {
     let folder = TempDir::new().unwrap();
-    let before = write_fixture(folder.path(), "old contract.wasm", "amount", ScSpecTypeDef::I128);
-    let after = write_fixture(folder.path(), "new contract.wasm", "amount", ScSpecTypeDef::I128);
+    let before = write_fixture(
+        folder.path(),
+        "old contract.wasm",
+        "amount",
+        ScSpecTypeDef::I128,
+    );
+    let after = write_fixture(
+        folder.path(),
+        "new contract.wasm",
+        "amount",
+        ScSpecTypeDef::I128,
+    );
     let result = invoke(&before, &after, &[]);
     assert_eq!(result.status.code(), Some(0));
 }

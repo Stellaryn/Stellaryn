@@ -53,9 +53,18 @@ fn json_is_parseable_deterministic_and_has_complete_analysis() {
     assert_eq!(value["after"], "new.wasm");
     assert_eq!(value["analysis"]["verdict"], "COMPATIBLE");
     assert_eq!(value["analysis"]["totals"]["non_breaking"], 1);
-    assert_eq!(value["analysis"]["findings"][0]["rule"]["domain"], "function");
-    assert_eq!(value["analysis"]["findings"][0]["rule"]["id"], "FUNCTION_ADDED");
-    assert!(value["disclaimer"].as_str().unwrap().contains("not a security audit"));
+    assert_eq!(
+        value["analysis"]["findings"][0]["rule"]["domain"],
+        "function"
+    );
+    assert_eq!(
+        value["analysis"]["findings"][0]["rule"]["id"],
+        "FUNCTION_ADDED"
+    );
+    assert!(value["disclaimer"]
+        .as_str()
+        .unwrap()
+        .contains("not a security audit"));
 }
 
 #[test]
