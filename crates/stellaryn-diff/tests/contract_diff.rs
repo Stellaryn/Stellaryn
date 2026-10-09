@@ -152,8 +152,8 @@ fn unchanged_interfaces_are_compatible_with_zero_findings() {
 
 #[test]
 fn metadata_only_changes_produce_no_findings() {
-    let (before, mut after) = breaking_inputs();
-    after = before.clone();
+    let (before, _) = breaking_inputs();
+    let mut after = before.clone();
     after.functions[0].doc = "New docs".into();
     after.types[0].doc = "Revised docs".into();
     after.events[0].doc = "Event docs".into();

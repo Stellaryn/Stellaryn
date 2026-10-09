@@ -7,12 +7,12 @@ fn binary() -> Command {
 }
 
 #[test]
-fn help_is_honest_about_phase_one_scope() {
+fn help_is_honest_about_phase_seven_scope() {
     let output = binary().arg("--help").output().unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(stdout.contains("Stellaryn compares Soroban contract interfaces"));
-    assert!(stdout.contains("No compatibility result is produced in Phase 1"));
+    assert!(stdout.contains("Stellaryn reads Soroban contract specifications"));
+    assert!(stdout.contains("it cannot compare contracts yet"));
     assert!(stdout.contains("not a security audit"));
 }
 
@@ -30,5 +30,5 @@ fn product_info_is_machine_friendly() {
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("product=Stellaryn"));
-    assert!(stdout.contains("status=foundation"));
+    assert!(stdout.contains("status=pre-alpha"));
 }

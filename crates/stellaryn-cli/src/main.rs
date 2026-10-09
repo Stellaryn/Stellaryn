@@ -6,7 +6,7 @@ use stellaryn_core::{DISCLAIMER, PRODUCT_NAME};
     name = "stellaryn",
     version,
     about = "Local-first Soroban contract compatibility analyzer",
-    long_about = "Stellaryn compares Soroban contract interfaces to explain compatibility changes before an upgrade ships. Phase 1 establishes the CLI and workspace only; comparison logic is added in later verified phases.",
+    long_about = "Stellaryn reads Soroban contract specifications and compares public-interface compatibility through its Rust libraries. The user-facing compare command and reports are planned for Phase 8.",
     after_help = "Stellaryn currently exposes foundation metadata only. No compatibility result is produced in Phase 1.\n\nPassing Stellaryn is not a security audit and does not prove that a contract upgrade is safe to deploy."
 )]
 struct Cli {
@@ -20,7 +20,7 @@ fn main() {
     if cli.product_info {
         println!("product={PRODUCT_NAME}");
         println!("version={}", env!("CARGO_PKG_VERSION"));
-        println!("status=foundation");
+        println!("status=pre-alpha");
         println!("disclaimer={DISCLAIMER}");
     }
 }
