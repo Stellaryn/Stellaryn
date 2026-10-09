@@ -1,77 +1,82 @@
-"""Release-packaging regressions: determinism, checksums, and archive safety."""
+"""Tests for reproducible release-candidate archives; no Rust build required."""
 
-import json
-import tarfile
 import tempfile
 import unittest
-import zipfile
 from pathlib import Path
-from unittest.mock import patch
 
 import package_release
 
 
-class ReleasePackageTests(unittest.TestCase):
-    def test_deterministic_linux_archives_and_manifest(self):
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            binary = root / "stellaryn"
-            binary.write_bytes(b"test-release-binary")
-            target = "x86_64-unknown-linux-gnu"
-            first = package_release.build(binary, root / "a", target)
-            second = package_release.build(binary, root / "b", target)
-            self.assertEqual(first.read_bytes(), second.read_bytes())
-            self.assertEqual(first.with_name(first.name + ".sha256").read_bytes(),
-                             second.with_name(second.name + ".sha256").read_bytes())
-            self.assertEqual(first.with_name(first.name + ".manifest.json").read_bytes(),
-                             second.with_name(second.name + ".manifest.json").read_bytes())
-            manifest = json.loads(first.with_name(first.name + ".manifest.json").read_text())
-            self.assertEqual(manifest["binary_sha256"], package_release.sha256(binary.read_bytes()))
-            self.assertEqual(len(manifest["files"]), 6)
-            with tarfile.open(first, "r:gz") as archive:
-                self.assertEqual(len(archive.getmembers()), 6)
-                binary_item = next(item for item in archive.getmembers()
-                                   if item.name.endswith("/stellaryn"))
-                self.assertEqual(binary_item.mode, 0o755)
-                self.assertEqual(binary_item.mtime, 0)
+class PackagingTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        (self.root / "target/release").mkdir(parents=True)
+        (self.root / "docs").mkdir(parents=True)
+        (self.root / "README.md").write_text("# Stellaryn\n", encoding="utf-8")
+        (self.root / "LICENSE").write_text("MIT test license\n", encoding="utf-8")
+        (self.root / "docs/limitations.md").write_text("Spec comparison only\n", encoding="utf-8")
+        self.dist = self.root / "dist"
 
-    def test_deterministic_windows_zip_uses_exe_even_on_unix_host(self):
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            binary = root / "stellaryn.exe"
-            binary.write_bytes(b"test-windows-binary")
-            target = "x86_64-pc-windows-msvc"
-            first = package_release.build(binary, root / "a", target)
-            second = package_release.build(binary, root / "b", target)
-            self.assertEqual(first.read_bytes(), second.read_bytes())
-            with zipfile.ZipFile(first) as archive:
-                self.assertEqual(len(archive.namelist()), 6)
-                self.assertTrue(any(name.endswith("/stellaryn.exe") for name in archive.namelist()))
-                for info in archive.infolist():
-                    self.assertEqual(info.date_time, (1980, 1, 1, 0, 0, 0))
+    def test_tar_archive_is_deterministic_and_has_expected_members(self):
+        (self.root / "target/release/stellaryn").write_bytes(b"native test program")
+        triple = "x86_64-unknown-linux-gnu"
+        a = package_release.create_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+        initial = a.read_bytes()
+        package_release.create_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+        self.assertEqual(initial, a.read_bytes())
+        names = package_release.read_verified_entries(a, "0.1.0-alpha.1", triple)
+        self.assertEqual(names["stellaryn"], b"native test program")
+        self.assertIn("docs/limitations.md", names)
 
-    def test_corrupt_archive_fails_checksum_before_executable_runs(self):
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            binary = root / "stellaryn"
-            binary.write_bytes(b"test-binary")
-            archive = package_release.build(binary, root / "dist", "x86_64-unknown-linux-gnu")
-            archive.write_bytes(archive.read_bytes() + b"tampered")
-            with patch.object(package_release, "rust_target", return_value="x86_64-unknown-linux-gnu"):
-                with self.assertRaisesRegex(ValueError, "checksum"):
-                    package_release.verify(archive)
+    def test_windows_archive_has_exe_and_stable_checksum(self):
+        (self.root / "target/release/stellaryn.exe").write_bytes(b"windows test exe")
+        triple = "x86_64-pc-windows-msvc"
+        archive = package_release.create_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+        self.assertEqual(archive.suffix, ".zip")
+        self.assertEqual(package_release.read_verified_entries(archive, "0.1.0-alpha.1", triple)["stellaryn.exe"], b"windows test exe")
+        self.assertEqual(archive.with_name(archive.name + ".sha256").read_text(encoding="ascii"), f"{package_release.sha256(archive.read_bytes())}  {archive.name}\n")
 
-    def test_extraction_rejects_unexpected_archive_members(self):
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            binary = root / "stellaryn"
-            binary.write_bytes(b"test-binary")
-            archive = package_release.build(binary, root / "dist", "x86_64-unknown-linux-gnu")
-            with self.assertRaisesRegex(ValueError, "contents"):
-                package_release.extract_expected(
-                    archive, root / "extract", "stellaryn-test",
-                    {"stellaryn-test/stellaryn"},
-                )
+    def test_rejects_unsafe_version_and_target_strings(self):
+        for unsafe in ["", "../escape", "x y", "foo/bar", "🪐"]:
+            with self.assertRaises(ValueError):
+                package_release.release_basename(unsafe, "x86_64-unknown-linux-gnu")
+
+    def test_rejects_zip_member_paths_not_in_allowlist(self):
+        (self.root / "target/release/stellaryn.exe").write_bytes(b"windows test exe")
+        triple = "x86_64-pc-windows-msvc"
+        archive = package_release.create_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+        # An independent zip with a traversal member cannot pass the member check.
+        import zipfile
+        with zipfile.ZipFile(archive, "w") as output:
+            output.writestr(f"{package_release.release_basename('0.1.0-alpha.1', triple)}/../../evil.txt", b"not allowed")
+        with self.assertRaises(ValueError):
+            package_release.read_verified_entries(archive, "0.1.0-alpha.1", triple)
+
+    def test_corrupted_archive_checksum_blocks_execution(self):
+        (self.root / "target/release/stellaryn").write_bytes(b"native test program")
+        triple = "x86_64-unknown-linux-gnu"
+        archive = package_release.create_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+        archive.write_bytes(archive.read_bytes() + b"tampered archive")
+        with self.assertRaisesRegex(ValueError, "SHA-256 checksum mismatch"):
+            package_release.verify_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+
+    def test_tar_symlink_member_is_rejected(self):
+        import tarfile
+
+        triple = "x86_64-unknown-linux-gnu"
+        archive = self.dist / package_release.archive_name("0.1.0-alpha.1", triple)
+        archive.parent.mkdir(parents=True)
+        with tarfile.open(archive, "w:gz") as output:
+            entry = tarfile.TarInfo(
+                package_release.release_basename("0.1.0-alpha.1", triple) + "/stellaryn"
+            )
+            entry.type = tarfile.SYMTYPE
+            entry.linkname = "../../outside"
+            output.addfile(entry)
+        with self.assertRaisesRegex(ValueError, "non-regular bundle member"):
+            package_release.read_verified_entries(archive, "0.1.0-alpha.1", triple)
 
 
 if __name__ == "__main__":
