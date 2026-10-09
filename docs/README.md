@@ -2,7 +2,7 @@
 
 **See exactly what changed before your Soroban contract upgrade ships.**
 
-Stellaryn is a local-first, pre-alpha Rust CLI for inspecting the **public specification** of two compiled Soroban contract WASM files and reporting compatibility findings. It can also compare WASM files already committed at two Git revisions.
+Stellaryn is a local-first Rust CLI for inspecting the **public specification** of two compiled Soroban contract WASM files and reporting compatibility findings. It can also compare WASM files already committed at two Git revisions.
 
 > A `COMPATIBLE` finding is **not** a security audit, runtime correctness proof, storage-migration check, or deployment approval.
 
