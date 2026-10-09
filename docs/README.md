@@ -28,4 +28,4 @@ The [44-case synthetic fixture matrix](fixture-matrix.md) tests the normalized r
 
 The [internal build plan](build-plan.md) records implementation history. The [first public binary release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) is verified on Linux, Windows and macOS CI runners.
 
-Documentation lives in this GitHub repository. `gitbook-docs.yaml` maps the GitBook site to `./docs`, and `.gitbook.yaml` retains the existing documentation-space settings. A public GitBook URL must not be advertised until the site successfully imports the pages and is actually published.
+**Published docs:** [Stellaryn Documentation on GitBook](https://oobayemi.gitbook.io/stellaryn-documentation/), with active one-way GitHub-to-GitBook import verified on 2026-10-09. The authoritative source remains this repository's `docs/` directory. `gitbook-docs.yaml` maps site-wide content to `./docs`, and `.gitbook.yaml` retains the original space settings. Edit source via normal reviewed GitHub pull requests to keep website content synchronized.

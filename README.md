@@ -71,6 +71,8 @@ The default policy is `--fail-on breaking`; alternatives are `review` and `never
 
 ## Documentation
 
+**Online documentation:** [Stellaryn Docs on GitBook](https://oobayemi.gitbook.io/stellaryn-documentation/) (installation, examples, release verification, compatibility rules and limitations). The canonical documentation source remains the [repository `docs/` directory](docs/README.md).
+
 [Documentation home](docs/README.md) · [Getting started](docs/getting-started.md) · [Worked examples](docs/examples.md) · [CI integration](docs/ci-integration.md) · [Troubleshooting](docs/troubleshooting.md) · [Compatibility rules](docs/rule-authoring.md) · [Scope and limitations](docs/limitations.md) · [Release packaging and verified platform builds](docs/releasing.md)
 
 **Evidence:** [Synthetic spec test matrix](docs/fixture-matrix.md) · [Independently compiled WASM validation](docs/real-world-validation.md) · [Pinned third-party artifact sources](tests/fixtures/real/README.md)
