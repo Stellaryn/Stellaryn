@@ -22,7 +22,7 @@ Implemented: struct field changes/reordering, numeric enum discriminants and var
 
 ## Phase 6 — Events and errors
 
-Deterministic comparison for public errors and event shapes.
+Implemented: numeric error-code changes, renames and additions/removals; event prefixes, data format, parameter location/type/name/order and additions/removals, with deterministic classification.
 
 ## Phase 7 — Verdict and exit policy
 
