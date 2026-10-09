@@ -1,6 +1,6 @@
-# Stellaryn v0.1.0 — release notes (publication draft)
+# Stellaryn v0.1.0 — verified publication record
 
-> Draft for the first public release. **Do not link to a release tag, claim download URLs, or describe this as published until the GitHub Release and artifacts are verified.** The final commit SHA, GitHub Actions runs, target triples, assets and checksums must be recorded at publication.
+> **Published 2026-10-09:** [Stellaryn v0.1.0 GitHub Release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0). The release workflow produced native archives and matching `.sha256` integrity companions for Linux x86_64, Windows x86_64/MSVC and macOS Apple Silicon. This is not a security audit, publisher-identity signature or notarization.
 
 ## What Stellaryn does
 
@@ -22,7 +22,7 @@ cargo build --locked --release -p stellaryn-cli
 ./target/release/stellaryn --version
 ```
 
-For Windows, the binary filename is `stellaryn.exe`. After publication, use the **actual** GitHub Release assets for each native target and its matching `.sha256` file. Check the SHA-256 against a trusted release page before execution. The tool does not require RPC credentials or an indexer.
+For Windows, the binary filename is `stellaryn.exe`. Use the [actual published GitHub Release assets](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) for each native target and its matching `.sha256` file. Check the SHA-256 against the trusted release before execution. The tool does not require RPC credentials or an indexer.
 
 ## Try the compiled-WASM fixtures
 
@@ -41,11 +41,12 @@ The pinned, independently compiled fixture pair yields `INCOMPATIBLE` with three
 
 Documentation: [getting started](getting-started.md), [full limitations](limitations.md), [CI integration](ci-integration.md), [compiled-WASM validation](real-world-validation.md), and [release packaging](releasing.md).
 
-## Publication evidence (to fill only after verification)
+## Publication evidence (verified 2026-10-09)
 
-- Tagged commit: **NOT YET VERIFIED**
-- Tag and GitHub Release URL: **NOT YET PUBLISHED**
-- Final standard CI URL, success and head SHA: **PENDING**
-- Final native Linux, Windows and macOS jobs: **PENDING**
-- Published packages and independent SHA-256 verification: **PENDING**
-- Maintainer signatures/attestations: **NOT CLAIMED**
+- Tagged commit: [`17de3459ef24641c6544e845e35ba5a7fbcd0f9e`](https://github.com/Stellaryn/Stellaryn/commit/17de3459ef24641c6544e845e35ba5a7fbcd0f9e).
+- Published tag/Release: [v0.1.0](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0); GitHub API confirms a published non-draft, non-prerelease release.
+- [Final standard CI](https://github.com/Stellaryn/Stellaryn/actions/runs/37982084864): success on the tagged SHA.
+- [Final native candidates](https://github.com/Stellaryn/Stellaryn/actions/runs/37982085083): all three supported OS runners successful on the tagged SHA.
+- [Release publication](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203): all three native builds, checksum/asset verification and publishing job successful on the tagged SHA.
+- Published assets: three native archives and three SHA-256 companion files, as verified on the GitHub Release page.
+- Maintainer identity signatures, notarization or independent third-party deployment: **not claimed**.
