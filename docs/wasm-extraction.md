@@ -63,6 +63,6 @@ Event parameter location and data format are represented as typed enums, not fre
 
 ## Failure semantics
 
-Malformed Wasm, missing `contractspecv0`, XDR decoding failures, file I/O failures, and invalid normalized interfaces are errors.
+Malformed Wasm (including invalid trailing bytes), missing, empty, or duplicate `contractspecv0` sections, XDR decoding failures, file I/O failures, and invalid normalized interfaces are errors.
 
-Stellaryn never turns a missing or unreadable contract spec into an empty successful analysis.
+Stellaryn never turns a missing, empty, duplicate, or unreadable contract spec into a successful empty analysis. The official reader normally stops at the first matching custom section; the Phase 10 validation pass inspects the entire module before extraction to reject multiple sections and malformed trailing Wasm.

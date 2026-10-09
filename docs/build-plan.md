@@ -38,7 +38,7 @@ Implemented: `stellaryn git --repo . --from REF --to REF --wasm PATH`, optionall
 
 ## Phase 10 — Fixture matrix
 
-Healthy and intentionally breaking Wasm/spec fixtures with stable expected results.
+Implemented: 44 deterministic XDR-backed golden compatibility scenarios across all six Soroban contract-spec categories, plus malformed/ambiguous WASM and normalization regression tests. Hardened the extractor to reject empty/duplicate contractspecv0 sections and trailing malformed WASM. These are synthetic spec-section WASM fixtures, not independently compiled deployment artifacts; that separate validation is Phase 11.
 
 ## Phase 11 — Real-world validation
 

@@ -8,7 +8,7 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 
 ## Status
 
-**Phase 9 / pre-alpha.** Stellaryn compares local Soroban WASM files or compiled contract artifacts committed at two Git revisions. Both modes use identical compatibility rules, JSON/terminal reporting, and CI exit policies. Automated builds from Git sources and release packaging remain future work.
+**Phase 10 / pre-alpha.** Stellaryn compares local Soroban WASM files and committed Git artifacts using the same compatibility rules, with an expanded deterministic 44-case specification fixture matrix and malformed-WASM fail-closed tests. Validation against independently compiled public contracts is planned for Phase 11.
 
 ## Implemented
 
@@ -27,6 +27,8 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 - unified, deterministic findings with counts by domain
 - overall spec-level compatibility verdict and configurable CI failure threshold
 - non-mutating Git revision comparison for committed WASM artifacts
+- 44-case XDR/WASM spec-level compatibility fixture matrix and malformed-input edge-case tests
+- rejection of empty/duplicate contract spec sections and malformed trailing WASM
 
 ## Function compatibility rules
 
@@ -81,6 +83,18 @@ cargo run -p stellaryn-cli -- git --repo . --from 'HEAD~1' --to HEAD \
 Git mode requires a local Git installation and **WASM artifacts already committed at both revisions**. It does not compile contracts from source or guess an artifact path. It reads Git objects directly with `git cat-file`; no checkout, reset, staging, or worktree changes are made. Repository-relative paths with spaces are supported. Missing refs/artifacts, malformed WASM, and oversize artifacts fail as analysis errors.
 
 **Git artifact size limit:** 32 MiB per input. Use the standard `compare` command for larger local artifacts. The same `--format`, `--fail-on`, and exit-code behavior applies to both comparison modes.
+
+## Phase 10 — Fixture matrix and regression testing
+
+```bash
+# End-to-end golden compatibility scenarios through the real CLI
+cargo test -p stellaryn-cli --test fixture_matrix
+
+# Malformed WASM, missing/empty/duplicate specs, XDR, validation edge cases
+cargo test -p stellaryn-cli --test invalid_fixtures
+```
+
+The matrix builds valid Soroban `ScSpecEntry` XDR within minimal WebAssembly modules for all six public-spec categories. These are **synthetic specification fixtures, not compiled executable Soroban contracts**. They exercise the official spec reader, normalized model, diff engines, report format, and CLI exit handling; separate validation against independent compiled contracts remains a Phase 11 requirement. See [docs/fixture-matrix.md](docs/fixture-matrix.md).
 
 ## Programmatic comparison and CI policy (Phase 7)
 
