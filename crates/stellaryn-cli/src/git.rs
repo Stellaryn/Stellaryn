@@ -36,7 +36,7 @@ pub enum GitArtifactError {
         path: String,
     },
 
-    #[error("Git blob '{revision}:{path}' exceeds the {MAX_GIT_BLOB_BYTES}-byte limit (actual size: {size})")]
+    #[error("Git blob '{revision}:{path}' exceeds the 32 MiB limit (actual size: {size})")]
     TooLarge {
         revision: String,
         path: String,
