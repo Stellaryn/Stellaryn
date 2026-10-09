@@ -461,10 +461,10 @@ fn exit_policy_json_is_explicit_and_stable() {
 
 #[test]
 fn policy_matrix_including_nonbreaking_changes() {
-    let empty = empty();
+    let before = empty();
     let mut added = empty();
     added.functions.push(function("version", Vec::new()));
-    let compatible = diff_contracts(&empty, &added).unwrap();
+    let compatible = diff_contracts(&before, &added).unwrap();
     let (review_before, review_after) = review_inputs();
     let review = diff_contracts(&review_before, &review_after).unwrap();
     let (breaking_before, breaking_after) = breaking_inputs();
