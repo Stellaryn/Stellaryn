@@ -8,9 +8,12 @@ Wasm/spec input
      v
 stellaryn-wasm
      |
- normalized facts
+ verified extraction
      v
 stellaryn-core
+  ContractInterface
+  TypeRef
+  validation + canonical ordering
      |
      v
 stellaryn-diff
@@ -23,4 +26,10 @@ stellaryn-report
 stellaryn-cli
 ```
 
-Phase 1 creates only these boundaries. It does not implement a Soroban parser or compatibility engine.
+## Current state
+
+Phase 1 established the workspace and CLI foundation.
+
+Phase 2 adds the normalized interface contract in `stellaryn-core`. It still does not parse Wasm or make compatibility decisions.
+
+Phase 3 will be the first layer allowed to understand concrete Soroban contract specification formats, after the exact Stellar/Soroban APIs and data shapes are verified.
