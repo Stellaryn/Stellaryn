@@ -1,0 +1,6 @@
+# GitBook Git Sync settings. Documentation is also readable on GitHub.
+# This does NOT create or publish a GitBook site by itself.
+root: ./docs/
+structure:
+  readme: README.md
+  summary: SUMMARY.md
