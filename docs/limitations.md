@@ -23,7 +23,7 @@ These gaps remain even if the verdict is `COMPATIBLE`. In particular, a self-dif
 
 ## Evidence types
 
-**Phase 10** uses synthetic XDR in minimal WebAssembly custom sections to test rules and fail-closed inputs. **Phase 11** adds six independently compiled, code-bearing WASM fixtures from pinned public GitHub repositories. The real compiled `add(i128)` and `add(u128)` variants show ABI-breaking differences but are not verified on-chain upgrades of one contract ID. Mainnet labels are inherited from an upstream dataset, not independently checked through chain RPC.
+The synthetic fixture matrix uses XDR in minimal WebAssembly custom sections to test rules and fail-closed inputs. A separate real-world suite uses six independently compiled, code-bearing WASM fixtures from pinned public GitHub repositories. The real compiled `add(i128)` and `add(u128)` variants show ABI-breaking differences but are not verified on-chain upgrades of one contract ID. Mainnet labels are inherited from an upstream dataset, not independently checked through chain RPC.
 
 [Read the real-artifact validation evidence](real-world-validation.md) and [source hashes](../tests/fixtures/real/README.md).
 

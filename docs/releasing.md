@@ -42,7 +42,7 @@ The output directory contains one archive and one matching `.sha256` file using 
 
 ```sh
 # Linux/macOS, substitute the actual archive name from dist/
-sha256sum -c dist/stellaryn-v0.1.0-alpha.1-<target>.tar.gz.sha256
+sha256sum -c dist/stellaryn-v0.1.0-<target>.tar.gz.sha256
 ```
 
 For native Windows verification, use `python scripts/package_release.py verify --dist dist`; it checks the exact checksum and archive contents.

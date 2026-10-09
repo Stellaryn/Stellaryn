@@ -909,7 +909,7 @@ dependencies = [
 
 [[package]]
 name = "stellaryn-cli"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 dependencies = [
  "clap",
  "serde_json",
@@ -925,7 +925,7 @@ dependencies = [
 
 [[package]]
 name = "stellaryn-core"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -934,7 +934,7 @@ dependencies = [
 
 [[package]]
 name = "stellaryn-diff"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -944,7 +944,7 @@ dependencies = [
 
 [[package]]
 name = "stellaryn-report"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -955,7 +955,7 @@ dependencies = [
 
 [[package]]
 name = "stellaryn-wasm"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 dependencies = [
  "soroban-spec",
  "stellar-xdr",

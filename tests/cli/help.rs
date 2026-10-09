@@ -21,7 +21,7 @@ fn version_is_available() {
     let output = binary().arg("--version").output().unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(stdout.contains("0.1.0-alpha.1"));
+    assert!(stdout.contains(env!("CARGO_PKG_VERSION")));
 }
 
 #[test]
@@ -30,5 +30,6 @@ fn product_info_is_machine_friendly() {
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("product=Stellaryn"));
-    assert!(stdout.contains("status=pre-alpha"));
+    assert!(stdout.contains(&format!("version={}", env!("CARGO_PKG_VERSION"))));
+    assert!(stdout.contains("status=initial-release"));
 }
