@@ -37,6 +37,12 @@ jobs:
       - name: Tests
         run: cargo test --workspace --all-features
 
+      - name: Capture resolved lockfile for review
+        run: |
+          echo STELLARYN_LOCK_BEGIN
+          cat Cargo.lock
+          echo STELLARYN_LOCK_END
+
       - name: Real-world compatibility probes
         run: python3 scripts/real_world_probe.py
 
