@@ -1,6 +1,6 @@
 # Normalized Contract Interface
 
-Phase 2 defines Stellaryn's comparison-first contract interface model.
+Phase 2 defined Stellaryn's comparison-first contract interface model. Phase 5 refined the model to distinguish tagged unions from numeric enums, and bumped the schema to **1.1**.
 
 The model is deliberately independent from any particular Stellar CLI JSON layout or XDR Rust type. Phase 3 will map verified Soroban contract specification data into this model.
 
@@ -25,7 +25,7 @@ The model is deliberately independent from any particular Stellar CLI JSON layou
 - map;
 - tuple.
 
-Protocol-specific primitive names are not hard-coded in Phase 2. The Phase 3 extractor is responsible for mapping verified Soroban spec types to canonical primitive/named tokens.
+Protocol-specific primitive names are not hard-coded in this model. The verified Phase 3 extractor maps Soroban spec types to canonical primitive/named tokens.
 
 ## Ordering
 
@@ -42,7 +42,8 @@ It preserves:
 - function parameter order;
 - function output order;
 - struct field order;
-- enum variant order;
+- numeric-enum variant order;
+- tagged-union variant order and positional payload order;
 - variant payload order;
 - event prefix-topic order;
 - event parameter order.
@@ -71,10 +72,12 @@ The model rejects:
 - duplicate top-level names within a category;
 - duplicate function/event parameters;
 - duplicate struct fields;
-- duplicate enum variants;
+- duplicate enum/union variants;
+- duplicate numeric-enum discriminants;
+- payload-bearing numeric enums or discriminant-bearing tagged unions;
 - duplicate named variant fields;
 - duplicate error case names;
 - duplicate numeric values inside one error definition;
 - empty primitive or named-type tokens.
 
-Validation does not attempt to prove Soroban protocol correctness. That responsibility belongs to the verified extraction layer in Phase 3.
+Validation enforces the distinct shapes of numeric enums and tagged unions. It does not prove all Soroban protocol properties; the verified extraction layer is responsible for XDR decoding. The Phase 5 diff rules consume only this normalized model.

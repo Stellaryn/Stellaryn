@@ -39,4 +39,4 @@ Phase 2 established the protocol-independent normalized interface contract.
 
 Phase 3 is the first protocol-aware layer. It is pinned to verified `soroban-spec 28.0.0` and `stellar-xdr 28.0.0` behavior and parses local Wasm without requiring a Stellar CLI subprocess.
 
-Phase 4 will consume only the normalized interface and will not parse XDR directly.
+Phase 4 consumes only the normalized interface to detect function changes. Phase 5 adds the distinct numeric-enum and tagged-union model (schema 1.1), validates their shapes, and compares custom types without parsing XDR. Phase 6 will compare errors and events.

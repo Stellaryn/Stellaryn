@@ -18,7 +18,7 @@ Implemented: deterministic function additions/removals, parameter count/order/na
 
 ## Phase 5 — Custom type compatibility diff
 
-Struct and enum compatibility rules with explicit review semantics for uncertain additive cases.
+Implemented: struct field changes/reordering, numeric enum discriminants and variants, tagged union variants/payloads, type-kind changes, stable ordering, and explicit review semantics for uncertain additive changes.
 
 ## Phase 6 — Events and errors
 

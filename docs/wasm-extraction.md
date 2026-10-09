@@ -54,12 +54,12 @@ Contract entries map as follows:
 
 - `FunctionV0` -> `Function`;
 - `UdtStructV0` -> struct `UserType`;
-- `UdtUnionV0` -> enum-like `UserType` with zero or positional payload fields;
-- `UdtEnumV0` -> enum `UserType` with numeric discriminants;
+- `UdtUnionV0` -> explicit `UserTypeKind::Union` with zero or positional payload fields;
+- `UdtEnumV0` -> `UserTypeKind::Enum` with numeric discriminants;
 - `UdtErrorEnumV0` -> `ErrorDefinition`;
 - `EventV0` -> `EventDefinition`.
 
-Event parameter location and data format are represented as typed enums, not free-form strings.
+Event parameter location and data format are represented as typed enums, not free-form strings. Phase 5 introduced distinct tagged-union and numeric-enum normalized kinds in interface schema 1.1; the verified XDR categories are preserved rather than collapsed.
 
 ## Failure semantics
 
