@@ -7,19 +7,29 @@ pub const INTERFACE_SCHEMA_VERSION: &str = "1.0";
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum TypeRef {
-    Primitive { name: String },
-    Named { name: String },
-    Option { value: Box<TypeRef> },
+    Primitive {
+        name: String,
+    },
+    Named {
+        name: String,
+    },
+    Option {
+        value: Box<TypeRef>,
+    },
     Result {
         ok: Box<TypeRef>,
         error: Box<TypeRef>,
     },
-    Vector { element: Box<TypeRef> },
+    Vector {
+        element: Box<TypeRef>,
+    },
     Map {
         key: Box<TypeRef>,
         value: Box<TypeRef>,
     },
-    Tuple { elements: Vec<TypeRef> },
+    Tuple {
+        elements: Vec<TypeRef>,
+    },
 }
 
 impl TypeRef {
@@ -269,10 +279,13 @@ impl ContractInterface {
     pub fn normalized(mut self) -> Result<Self, InterfaceValidationError> {
         self.validate()?;
 
-        self.functions.sort_by(|left, right| left.name.cmp(&right.name));
+        self.functions
+            .sort_by(|left, right| left.name.cmp(&right.name));
         self.types.sort_by(|left, right| left.name.cmp(&right.name));
-        self.errors.sort_by(|left, right| left.name.cmp(&right.name));
-        self.events.sort_by(|left, right| left.name.cmp(&right.name));
+        self.errors
+            .sort_by(|left, right| left.name.cmp(&right.name));
+        self.events
+            .sort_by(|left, right| left.name.cmp(&right.name));
 
         for error in &mut self.errors {
             error
@@ -368,14 +381,16 @@ fn validate_function(function: &Function) -> Result<(), InterfaceValidationError
     validate_named_members(
         &format!("function:{}", function.name),
         "parameter",
-        function.parameters.iter().map(|parameter| parameter.name.as_str()),
+        function
+            .parameters
+            .iter()
+            .map(|parameter| parameter.name.as_str()),
     )?;
 
     for (index, parameter) in function.parameters.iter().enumerate() {
-        parameter.type_ref.validate(&format!(
-            "function:{}:parameter:{index}",
-            function.name
-        ))?;
+        parameter
+            .type_ref
+            .validate(&format!("function:{}:parameter:{index}", function.name))?;
     }
     for (index, output) in function.outputs.iter().enumerate() {
         output.validate(&format!("function:{}:output:{index}", function.name))?;
@@ -395,10 +410,9 @@ fn validate_user_type(user_type: &UserType) -> Result<(), InterfaceValidationErr
                 fields.iter().map(|field| field.name.as_str()),
             )?;
             for (index, field) in fields.iter().enumerate() {
-                field.type_ref.validate(&format!(
-                    "type:{}:field:{index}",
-                    user_type.name
-                ))?;
+                field
+                    .type_ref
+                    .validate(&format!("type:{}:field:{index}", user_type.name))?;
             }
         }
         UserTypeKind::Enum { variants } => {
@@ -466,14 +480,16 @@ fn validate_event(event: &EventDefinition) -> Result<(), InterfaceValidationErro
     validate_named_members(
         &format!("event:{}", event.name),
         "parameter",
-        event.parameters.iter().map(|parameter| parameter.name.as_str()),
+        event
+            .parameters
+            .iter()
+            .map(|parameter| parameter.name.as_str()),
     )?;
 
     for (index, parameter) in event.parameters.iter().enumerate() {
-        parameter.type_ref.validate(&format!(
-            "event:{}:parameter:{index}",
-            event.name
-        ))?;
+        parameter
+            .type_ref
+            .validate(&format!("event:{}:parameter:{index}", event.name))?;
     }
 
     Ok(())
