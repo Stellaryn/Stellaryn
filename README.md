@@ -8,7 +8,7 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 
 ## Status
 
-**Phase 7 / pre-alpha.** Stellaryn now has a library-level overall contract-spec verdict and CI exit policy built on verified local Soroban WASM extraction and deterministic findings for functions, custom types, errors, and events. The user-facing compare CLI and reporting are still pending.
+**Phase 8 / pre-alpha.** Stellaryn now supports end-to-end local Soroban WASM interface comparison through `stellaryn compare`, including deterministic terminal/JSON reports and CI policy exit codes. Git-ref comparison and release packaging are future work.
 
 ## Implemented
 
@@ -43,7 +43,7 @@ Documentation-only edits are ignored.
 
 ## Programmatic comparison and CI policy (Phase 7)
 
-Rust library consumers can now use `stellaryn_diff::diff_contracts(&before, &after)` to produce a typed `ContractDiff` containing a `COMPATIBLE`, `REVIEW_REQUIRED`, or `INCOMPATIBLE` verdict, aggregate counts, per-domain counts, and findings. `ExitPolicy { fail_on: FailOn::Breaking }` is the default and produces exit code 2 on a breaking finding. `FailOn::Review` also blocks review-required changes; `FailOn::Never` does not block completed analyses. Analysis errors are reserved for exit code 1 regardless of policy. The CLI does not expose these comparison options yet; that is Phase 8.
+Rust library consumers can now use `stellaryn_diff::diff_contracts(&before, &after)` to produce a typed `ContractDiff` containing a `COMPATIBLE`, `REVIEW_REQUIRED`, or `INCOMPATIBLE` verdict, aggregate counts, per-domain counts, and findings. `ExitPolicy { fail_on: FailOn::Breaking }` is the default and produces exit code 2 on a breaking finding. `FailOn::Review` also blocks review-required changes; `FailOn::Never` does not block completed analyses. Analysis errors use exit code 1 regardless of policy. Phase 8 now exposes these policies through the CLI.
 
 **Important:** A `COMPATIBLE` verdict means no known breaking or review-required changes were found **in the extracted public contract specification**. It is not a security audit and does not establish runtime or storage-upgrade safety.
 
@@ -61,7 +61,7 @@ Rust library consumers can now use `stellaryn_diff::diff_contracts(&before, &aft
 | `stellaryn-core` | Normalized interface types, validation, and stable ordering |
 | `stellaryn-wasm` | Verified Soroban Wasm/spec extraction |
 | `stellaryn-diff` | Deterministic compatibility findings |
-| `stellaryn-report` | Future terminal and machine-readable reporting |
+| `stellaryn-report` | Deterministic terminal and machine-readable reporting |
 
 ## Quality gates
 
