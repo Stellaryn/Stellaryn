@@ -7,9 +7,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
-use stellaryn_core::{
-    ContractInterface, EnumVariant, StructField, UserType, UserTypeKind,
-};
+use stellaryn_core::{ContractInterface, EnumVariant, StructField, UserType, UserTypeKind};
 
 use crate::{ChangeClassification, DiffError};
 
@@ -125,13 +123,30 @@ pub fn diff_types(
                 Some(kind_name(&item.definition).to_owned()),
             ),
             (Some(old), Some(new)) => match (&old.definition, &new.definition) {
-                (UserTypeKind::Struct { fields: old_fields }, UserTypeKind::Struct { fields: new_fields }) => {
+                (
+                    UserTypeKind::Struct { fields: old_fields },
+                    UserTypeKind::Struct { fields: new_fields },
+                ) => {
                     diff_struct(name, old_fields, new_fields, &mut changes);
                 }
-                (UserTypeKind::Enum { variants: old_variants }, UserTypeKind::Enum { variants: new_variants }) => {
+                (
+                    UserTypeKind::Enum {
+                        variants: old_variants,
+                    },
+                    UserTypeKind::Enum {
+                        variants: new_variants,
+                    },
+                ) => {
                     diff_variants(name, old_variants, new_variants, true, &mut changes);
                 }
-                (UserTypeKind::Union { variants: old_variants }, UserTypeKind::Union { variants: new_variants }) => {
+                (
+                    UserTypeKind::Union {
+                        variants: old_variants,
+                    },
+                    UserTypeKind::Union {
+                        variants: new_variants,
+                    },
+                ) => {
                     diff_variants(name, old_variants, new_variants, false, &mut changes);
                 }
                 _ => add(
@@ -255,7 +270,11 @@ fn diff_variants(
         match new.get(variant_name) {
             None => add(
                 changes,
-                if is_numeric { TypeChangeId::EnumVariantRemoved } else { TypeChangeId::UnionVariantRemoved },
+                if is_numeric {
+                    TypeChangeId::EnumVariantRemoved
+                } else {
+                    TypeChangeId::UnionVariantRemoved
+                },
                 subject,
                 ChangeClassification::Breaking,
                 format!("Variant '{variant_name}' was removed from '{name}'."),
@@ -286,7 +305,11 @@ fn diff_variants(
         if !old.contains_key(variant_name) {
             add(
                 changes,
-                if is_numeric { TypeChangeId::EnumVariantAdded } else { TypeChangeId::UnionVariantAdded },
+                if is_numeric {
+                    TypeChangeId::EnumVariantAdded
+                } else {
+                    TypeChangeId::UnionVariantAdded
+                },
                 format!("type:{name}::variant:{variant_name}"),
                 ChangeClassification::ReviewRequired,
                 format!("Variant '{variant_name}' was added to '{name}'."),
@@ -348,7 +371,9 @@ fn diff_payload(
                 TypeChangeId::UnionPayloadNameChanged,
                 format!("{subject}::payload:{index}"),
                 ChangeClassification::ReviewRequired,
-                format!("Payload field name at index {index} changed for '{name}::{variant_name}'."),
+                format!(
+                    "Payload field name at index {index} changed for '{name}::{variant_name}'."
+                ),
                 old.name.clone(),
                 new.name.clone(),
             );

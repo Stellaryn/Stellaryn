@@ -1,12 +1,10 @@
 #![allow(clippy::unwrap_used)]
 
 use stellaryn_core::{
-    AnalysisSource, ContractInterface, EnumVariant, InterfaceValidationError, StructField,
-    TypeRef, UserType, UserTypeKind, VariantField,
+    AnalysisSource, ContractInterface, EnumVariant, InterfaceValidationError, StructField, TypeRef,
+    UserType, UserTypeKind, VariantField,
 };
-use stellaryn_diff::{
-    diff_types, ChangeClassification, DiffError, TypeChangeId,
-};
+use stellaryn_diff::{diff_types, ChangeClassification, DiffError, TypeChangeId};
 
 fn contract(types: Vec<UserType>) -> ContractInterface {
     let mut interface = ContractInterface::empty(AnalysisSource::WasmSpec);
@@ -96,20 +94,38 @@ fn type_added_is_non_breaking_and_type_removed_is_breaking() {
     let added = diff_types(&contract(vec![]), &contract(vec![item.clone()])).unwrap();
     let removed = diff_types(&contract(vec![item]), &contract(vec![])).unwrap();
     assert_eq!(added.changes[0].id, TypeChangeId::TypeAdded);
-    assert_eq!(added.changes[0].classification, ChangeClassification::NonBreaking);
+    assert_eq!(
+        added.changes[0].classification,
+        ChangeClassification::NonBreaking
+    );
     assert_eq!(removed.changes[0].id, TypeChangeId::TypeRemoved);
-    assert_eq!(removed.changes[0].classification, ChangeClassification::Breaking);
+    assert_eq!(
+        removed.changes[0].classification,
+        ChangeClassification::Breaking
+    );
 }
 
 #[test]
 fn struct_field_add_remove_and_type_change_are_breaking() {
     let old = record("Account", vec![field("owner", "Address")]);
-    let new = record("Account", vec![field("owner", "Bytes"), field("flags", "u32")]);
+    let new = record(
+        "Account",
+        vec![field("owner", "Bytes"), field("flags", "u32")],
+    );
     let diff = diff_types(&contract(vec![old.clone()]), &contract(vec![new.clone()])).unwrap();
     assert_eq!(diff.changes.len(), 2);
-    assert!(diff.changes.iter().all(|f| f.classification == ChangeClassification::Breaking));
-    assert!(diff.changes.iter().any(|f| f.id == TypeChangeId::StructFieldAdded));
-    assert!(diff.changes.iter().any(|f| f.id == TypeChangeId::StructFieldTypeChanged));
+    assert!(diff
+        .changes
+        .iter()
+        .all(|f| f.classification == ChangeClassification::Breaking));
+    assert!(diff
+        .changes
+        .iter()
+        .any(|f| f.id == TypeChangeId::StructFieldAdded));
+    assert!(diff
+        .changes
+        .iter()
+        .any(|f| f.id == TypeChangeId::StructFieldTypeChanged));
 
     let reverse = one(new, old);
     assert!(reverse.contains(&TypeChangeId::StructFieldRemoved));
@@ -122,7 +138,10 @@ fn struct_reorder_is_review_required_and_does_not_relabel_fields() {
     let diff = diff_types(&contract(vec![before]), &contract(vec![after])).unwrap();
     assert_eq!(diff.changes.len(), 1);
     assert_eq!(diff.changes[0].id, TypeChangeId::StructFieldReordered);
-    assert_eq!(diff.changes[0].classification, ChangeClassification::ReviewRequired);
+    assert_eq!(
+        diff.changes[0].classification,
+        ChangeClassification::ReviewRequired
+    );
 }
 
 #[test]
@@ -136,19 +155,32 @@ fn struct_field_changes_preserve_structured_nested_type_evidence() {
     }
     let diff = diff_types(&contract(vec![before]), &contract(vec![after])).unwrap();
     assert_eq!(diff.changes[0].id, TypeChangeId::StructFieldTypeChanged);
-    assert_eq!(diff.changes[0].after_evidence.as_deref(), Some("Option<i128>"));
+    assert_eq!(
+        diff.changes[0].after_evidence.as_deref(),
+        Some("Option<i128>")
+    );
 }
 
 #[test]
 fn new_enum_variant_requires_review_and_removal_breaks() {
     let before = number_enum("Status", vec![variant("Active", 0)]);
     let after = number_enum("Status", vec![variant("Active", 0), variant("Paused", 1)]);
-    let added = diff_types(&contract(vec![before.clone()]), &contract(vec![after.clone()])).unwrap();
+    let added = diff_types(
+        &contract(vec![before.clone()]),
+        &contract(vec![after.clone()]),
+    )
+    .unwrap();
     assert_eq!(added.changes[0].id, TypeChangeId::EnumVariantAdded);
-    assert_eq!(added.changes[0].classification, ChangeClassification::ReviewRequired);
+    assert_eq!(
+        added.changes[0].classification,
+        ChangeClassification::ReviewRequired
+    );
     let removed = diff_types(&contract(vec![after]), &contract(vec![before])).unwrap();
     assert_eq!(removed.changes[0].id, TypeChangeId::EnumVariantRemoved);
-    assert_eq!(removed.changes[0].classification, ChangeClassification::Breaking);
+    assert_eq!(
+        removed.changes[0].classification,
+        ChangeClassification::Breaking
+    );
 }
 
 #[test]
@@ -157,7 +189,10 @@ fn enum_discriminant_change_is_breaking() {
     let after = number_enum("Status", vec![variant("Active", 2)]);
     let diff = diff_types(&contract(vec![before]), &contract(vec![after])).unwrap();
     assert_eq!(diff.changes[0].id, TypeChangeId::EnumDiscriminantChanged);
-    assert_eq!(diff.changes[0].classification, ChangeClassification::Breaking);
+    assert_eq!(
+        diff.changes[0].classification,
+        ChangeClassification::Breaking
+    );
     assert_eq!(diff.changes[0].before_evidence.as_deref(), Some("1"));
     assert_eq!(diff.changes[0].after_evidence.as_deref(), Some("2"));
 }
@@ -172,10 +207,20 @@ fn enum_case_reorder_with_unchanged_discriminants_is_not_a_change() {
 #[test]
 fn union_added_case_requires_review_and_removed_case_breaks() {
     let before = union("Action", vec![union_case("Pause", &[])]);
-    let after = union("Action", vec![union_case("Pause", &[]), union_case("Pay", &["u64"])]);
-    let added = diff_types(&contract(vec![before.clone()]), &contract(vec![after.clone()])).unwrap();
+    let after = union(
+        "Action",
+        vec![union_case("Pause", &[]), union_case("Pay", &["u64"])],
+    );
+    let added = diff_types(
+        &contract(vec![before.clone()]),
+        &contract(vec![after.clone()]),
+    )
+    .unwrap();
     assert_eq!(added.changes[0].id, TypeChangeId::UnionVariantAdded);
-    assert_eq!(added.changes[0].classification, ChangeClassification::ReviewRequired);
+    assert_eq!(
+        added.changes[0].classification,
+        ChangeClassification::ReviewRequired
+    );
     let removed = one(after, before);
     assert_eq!(removed, vec![TypeChangeId::UnionVariantRemoved]);
 }
@@ -186,7 +231,10 @@ fn union_payload_arity_change_is_breaking() {
     let after = union("Action", vec![union_case("Pay", &["Address", "u64"])]);
     let diff = diff_types(&contract(vec![before]), &contract(vec![after])).unwrap();
     assert_eq!(diff.changes[0].id, TypeChangeId::UnionPayloadCountChanged);
-    assert_eq!(diff.changes[0].classification, ChangeClassification::Breaking);
+    assert_eq!(
+        diff.changes[0].classification,
+        ChangeClassification::Breaking
+    );
 }
 
 #[test]
@@ -207,7 +255,10 @@ fn union_payload_field_name_change_requires_review() {
     }
     let diff = diff_types(&contract(vec![before]), &contract(vec![after])).unwrap();
     assert_eq!(diff.changes[0].id, TypeChangeId::UnionPayloadNameChanged);
-    assert_eq!(diff.changes[0].classification, ChangeClassification::ReviewRequired);
+    assert_eq!(
+        diff.changes[0].classification,
+        ChangeClassification::ReviewRequired
+    );
 }
 
 #[test]
@@ -217,7 +268,10 @@ fn type_kind_changes_are_breaking_including_enum_to_union() {
     let diff = diff_types(&contract(vec![before]), &contract(vec![after])).unwrap();
     assert_eq!(diff.changes.len(), 1);
     assert_eq!(diff.changes[0].id, TypeChangeId::TypeKindChanged);
-    assert_eq!(diff.changes[0].classification, ChangeClassification::Breaking);
+    assert_eq!(
+        diff.changes[0].classification,
+        ChangeClassification::Breaking
+    );
 }
 
 #[test]
@@ -238,8 +292,14 @@ fn findings_are_deterministic_under_unsorted_input_and_breaking_first() {
     let first = diff_types(&old, &new).unwrap();
     assert_eq!(first, diff_types(&old_reversed, &new_reversed).unwrap());
     assert_eq!(first.changes.len(), 2);
-    assert_eq!(first.changes[0].classification, ChangeClassification::Breaking);
-    assert_eq!(first.changes[1].classification, ChangeClassification::ReviewRequired);
+    assert_eq!(
+        first.changes[0].classification,
+        ChangeClassification::Breaking
+    );
+    assert_eq!(
+        first.changes[1].classification,
+        ChangeClassification::ReviewRequired
+    );
 }
 
 #[test]
