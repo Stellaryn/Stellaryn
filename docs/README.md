@@ -14,7 +14,7 @@ Stellaryn is a local-first Rust CLI for inspecting the **public specification** 
 - [Troubleshooting](troubleshooting.md) — missing specs, Git errors, malformed WASM, and confusing verdicts.
 - [Compatibility rules](rule-authoring.md) — how rules work and how to propose or implement changes.
 - [Scope and limitations](limitations.md) — evidence boundaries and what is not analyzed.
-- [Release-candidate packages](releasing.md) — archive layout, SHA-256 verification and platform evidence.
+- [Published v0.1.0 release and packages](releasing.md) — downloads, archive layout, SHA-256 verification and native platform evidence.
 - [Contributing](../CONTRIBUTING.md) — developer setup and PR checklist.
 - [Security policy](../SECURITY.md) — reporting sensitive findings.
 
@@ -26,6 +26,6 @@ Stellaryn is a local-first Rust CLI for inspecting the **public specification** 
 
 The [44-case synthetic fixture matrix](fixture-matrix.md) tests the normalized rules with generated Soroban XDR. The [real-world validation report](real-world-validation.md) tests **six independently compiled** contract WASM files from pinned third-party sources, with [byte-level provenance](../tests/fixtures/real/README.md). Neither establishes historical on-chain upgrade safety.
 
-The [build plan](build-plan.md) tracks the fourteen implementation phases. Phase 12 improves docs and community contribution workflows; cross-platform release packaging remains planned for Phase 13.
+The [internal build plan](build-plan.md) records implementation history. The [first public binary release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) is verified on Linux, Windows and macOS CI runners.
 
-Documentation lives in this GitHub repository. The `docs/SUMMARY.md` and root `.gitbook.yaml` also prepare it for optional GitBook Git Sync; **public GitBook hosting requires separately connecting and publishing a Stellaryn site.**
+Documentation lives in this GitHub repository. `gitbook-docs.yaml` maps the GitBook site to `./docs`, and `.gitbook.yaml` retains the existing documentation-space settings. A public GitBook URL must not be advertised until the site successfully imports the pages and is actually published.
