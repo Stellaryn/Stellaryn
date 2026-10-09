@@ -8,7 +8,7 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 
 ## Status
 
-**Phase 4 / pre-alpha.** Stellaryn now has verified local Soroban Wasm extraction plus deterministic function-level compatibility findings. Custom-type, error, event, overall-verdict, and user-facing comparison reporting are intentionally still pending.
+**Phase 5 / pre-alpha.** Stellaryn now has verified local Soroban Wasm extraction, deterministic function-level compatibility findings, and custom-type diff rules. Error/event rules, overall verdicts, and comparison reports remain pending.
 
 ## Implemented
 
@@ -21,6 +21,7 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 - explicit failure for invalid Wasm or missing contract specifications
 - deterministic function compatibility diff
 - breaking/non-breaking/review-required function findings
+- distinct struct, numeric-enum, and union kinds with custom-type compatibility rules
 
 ## Function compatibility rules
 
@@ -38,7 +39,6 @@ Documentation-only edits are ignored.
 
 ## Not implemented yet
 
-- custom-type compatibility rules
 - error/event compatibility rules
 - overall verdict and exit policy
 - terminal/JSON comparison reports
