@@ -1,0 +1,23 @@
+[package]
+name = "stellaryn-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Local-first Soroban contract compatibility analyzer"
+default-run = "stellaryn"
+
+[[bin]]
+name = "stellaryn"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+stellaryn-core.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "cli"
+path = "../../tests/cli/help.rs"

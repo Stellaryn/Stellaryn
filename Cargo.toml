@@ -1,0 +1,34 @@
+[workspace]
+members = [
+  "crates/stellaryn-cli",
+  "crates/stellaryn-core",
+  "crates/stellaryn-wasm",
+  "crates/stellaryn-diff",
+  "crates/stellaryn-report",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0-alpha.1"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+stellaryn-core = { path = "crates/stellaryn-core" }
+stellaryn-wasm = { path = "crates/stellaryn-wasm" }
+stellaryn-diff = { path = "crates/stellaryn-diff" }
+stellaryn-report = { path = "crates/stellaryn-report" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
