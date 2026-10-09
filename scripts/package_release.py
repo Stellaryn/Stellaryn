@@ -12,7 +12,6 @@ import hashlib
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tarfile
@@ -53,8 +52,8 @@ def rust_target() -> str:
     raise ValueError("rustc did not report its host target")
 
 
-def fixed_files(binary: Path, prefix: str) -> list[tuple[str, bytes, int]]:
-    name = "stellaryn.exe" if os.name == "nt" else "stellaryn"
+def fixed_files(binary: Path, prefix: str, target: str) -> list[tuple[str, bytes, int]]:
+    name = "stellaryn.exe" if "windows" in target else "stellaryn"
     if not binary.is_file():
         raise FileNotFoundError(f"missing release executable: {binary}")
     members = [(f"{prefix}/{name}", binary.read_bytes(), 0o755)]
@@ -93,7 +92,7 @@ def build(binary: Path, destination: Path, target: str) -> Path:
     destination.mkdir(parents=True, exist_ok=True)
     extension = ".zip" if "windows" in target else ".tar.gz"
     archive = destination / f"{prefix}{extension}"
-    members = fixed_files(binary, prefix)
+    members = fixed_files(binary, prefix, target)
     if extension == ".zip":
         make_zip(members, archive)
     else:
@@ -232,13 +231,20 @@ def main() -> int:
     make.add_argument("--out", type=Path, default=Path("dist"))
     make.add_argument("--target", default=None)
     check = sub.add_parser("verify")
-    check.add_argument("--archive", type=Path, required=True)
+    check.add_argument("--archive", type=Path)
+    check.add_argument("--out", type=Path, default=Path("dist"))
     args = parser.parse_args()
     try:
         if args.command == "build":
             build(args.binary, args.out, args.target or rust_target())
         else:
-            verify(args.archive)
+            if args.archive is not None:
+                verify(args.archive)
+            else:
+                matches = sorted(args.out.glob("stellaryn-*.tar.gz")) + sorted(args.out.glob("stellaryn-*.zip"))
+                if len(matches) != 1:
+                    raise ValueError(f"expected exactly one release archive in {args.out}, got {len(matches)}")
+                verify(matches[0])
     except (OSError, ValueError, KeyError, subprocess.SubprocessError, json.JSONDecodeError) as error:
         print(f"release package error: {error}", file=sys.stderr)
         return 1
