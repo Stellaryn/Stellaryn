@@ -32,5 +32,8 @@ jobs:
       - name: Tests
         run: cargo test --workspace --all-features
 
+      - name: Real-world compatibility probes
+        run: python3 scripts/real_world_probe.py
+
       - name: CLI help
         run: cargo run -p stellaryn-cli -- --help
