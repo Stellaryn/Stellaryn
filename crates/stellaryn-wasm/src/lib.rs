@@ -229,9 +229,7 @@ pub fn normalize_type_ref(type_ref: &ScSpecTypeDef) -> TypeRef {
     }
 }
 
-const fn normalize_event_location(
-    location: ScSpecEventParamLocationV0,
-) -> EventParameterLocation {
+const fn normalize_event_location(location: ScSpecEventParamLocationV0) -> EventParameterLocation {
     match location {
         ScSpecEventParamLocationV0::Data => EventParameterLocation::Data,
         ScSpecEventParamLocationV0::TopicList => EventParameterLocation::Topic,
