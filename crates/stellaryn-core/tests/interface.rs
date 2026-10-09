@@ -125,7 +125,7 @@ fn sample_interface() -> ContractInterface {
 
 #[test]
 fn normalization_is_deterministic_for_top_level_items() {
-    let mut left = sample_interface();
+    let left = sample_interface();
     let mut right = sample_interface();
 
     right.functions.reverse();
@@ -160,11 +160,11 @@ fn normalization_preserves_semantic_member_order() {
         .iter()
         .find(|user_type| user_type.name == "Account")
         .unwrap();
-    let UserTypeKind::Struct { fields } = &account.definition else {
-        panic!("expected struct");
-    };
-    assert_eq!(fields[0].name, "owner");
-    assert_eq!(fields[1].name, "flags");
+    assert!(matches!(account.definition, UserTypeKind::Struct { .. }));
+    if let UserTypeKind::Struct { fields } = &account.definition {
+        assert_eq!(fields[0].name, "owner");
+        assert_eq!(fields[1].name, "flags");
+    }
 
     let event = &normalized.events[0];
     assert_eq!(event.parameters[0].name, "from");
