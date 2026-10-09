@@ -1,9 +1,10 @@
 #![allow(clippy::unwrap_used)]
 
 use stellaryn_core::{
-    AnalysisSource, ContractInterface, EnumVariant, ErrorCase, ErrorDefinition, EventDefinition,
-    EventParameter, EventParameterLocation, Function, InterfaceValidationError, Parameter,
-    StructField, TypeRef, UserType, UserTypeKind, VariantField, INTERFACE_SCHEMA_VERSION,
+    AnalysisSource, ContractInterface, EnumVariant, ErrorCase, ErrorDefinition, EventDataFormat,
+    EventDefinition, EventParameter, EventParameterLocation, Function, InterfaceValidationError,
+    Parameter, StructField, TypeRef, UserType, UserTypeKind, VariantField,
+    INTERFACE_SCHEMA_VERSION,
 };
 
 fn sample_interface() -> ContractInterface {
@@ -118,7 +119,7 @@ fn sample_interface() -> ContractInterface {
                     doc: String::new(),
                 },
             ],
-            data_format: Some("single-value".into()),
+            data_format: EventDataFormat::SingleValue,
         }],
     }
 }
@@ -227,6 +228,11 @@ fn type_ref_serialization_is_structured_and_round_trips() {
     let decoded: TypeRef = serde_json::from_str(&json).unwrap();
     assert_eq!(decoded, value);
     assert_eq!(decoded.display_name(), "Map<Address, Option<Vec<i128>>>");
+
+    let bytes = TypeRef::BytesN { length: 32 };
+    assert_eq!(bytes.display_name(), "BytesN<32>");
+    let encoded = serde_json::to_string(&bytes).unwrap();
+    assert!(encoded.contains("\"kind\":\"bytes_n\""));
 }
 
 #[test]

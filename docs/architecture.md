@@ -1,19 +1,24 @@
 # Architecture
 
-Stellaryn is intentionally split so extraction, normalization, comparison, and presentation remain separate concerns.
+Stellaryn separates extraction, normalization, comparison, and presentation.
 
 ```text
-Wasm/spec input
+Soroban Wasm bytes
+     |
+     v
+soroban_spec::read::from_wasm
+     |
+ Vec<ScSpecEntry>
      |
      v
 stellaryn-wasm
+  exact XDR -> normalized mapping
      |
- verified extraction
      v
 stellaryn-core
   ContractInterface
   TypeRef
-  validation + canonical ordering
+  validation + canonical top-level ordering
      |
      v
 stellaryn-diff
@@ -26,10 +31,12 @@ stellaryn-report
 stellaryn-cli
 ```
 
-## Current state
+## Phase boundaries
 
 Phase 1 established the workspace and CLI foundation.
 
-Phase 2 adds the normalized interface contract in `stellaryn-core`. It still does not parse Wasm or make compatibility decisions.
+Phase 2 established the protocol-independent normalized interface contract.
 
-Phase 3 will be the first layer allowed to understand concrete Soroban contract specification formats, after the exact Stellar/Soroban APIs and data shapes are verified.
+Phase 3 is the first protocol-aware layer. It is pinned to verified `soroban-spec 28.0.0` and `stellar-xdr 28.0.0` behavior and parses local Wasm without requiring a Stellar CLI subprocess.
+
+Phase 4 will consume only the normalized interface and will not parse XDR directly.

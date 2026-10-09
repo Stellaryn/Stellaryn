@@ -30,6 +30,9 @@ pub enum TypeRef {
     Tuple {
         elements: Vec<TypeRef>,
     },
+    BytesN {
+        length: u32,
+    },
 }
 
 impl TypeRef {
@@ -56,6 +59,7 @@ impl TypeRef {
                 let values: Vec<_> = elements.iter().map(Self::display_name).collect();
                 format!("({})", values.join(", "))
             }
+            Self::BytesN { length } => format!("BytesN<{length}>"),
         }
     }
 
@@ -79,6 +83,7 @@ impl TypeRef {
                     element.validate(&format!("{path}.elements[{index}]"))?;
                 }
             }
+            Self::BytesN { .. } => {}
         }
         Ok(())
     }
@@ -197,6 +202,14 @@ pub enum EventParameterLocation {
     Data,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EventDataFormat {
+    SingleValue,
+    Vec,
+    Map,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EventParameter {
     pub name: String,
@@ -213,7 +226,7 @@ pub struct EventDefinition {
     pub doc: String,
     pub prefix_topics: Vec<String>,
     pub parameters: Vec<EventParameter>,
-    pub data_format: Option<String>,
+    pub data_format: EventDataFormat,
 }
 
 impl EventDefinition {

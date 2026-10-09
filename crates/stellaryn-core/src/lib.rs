@@ -3,9 +3,9 @@
 mod interface;
 
 pub use interface::{
-    ContractInterface, EnumVariant, ErrorCase, ErrorDefinition, EventDefinition, EventParameter,
-    EventParameterLocation, Function, InterfaceValidationError, Parameter, StructField, TypeRef,
-    UserType, UserTypeKind, VariantField, INTERFACE_SCHEMA_VERSION,
+    ContractInterface, EnumVariant, ErrorCase, ErrorDefinition, EventDataFormat, EventDefinition,
+    EventParameter, EventParameterLocation, Function, InterfaceValidationError, Parameter,
+    StructField, TypeRef, UserType, UserTypeKind, VariantField, INTERFACE_SCHEMA_VERSION,
 };
 
 use serde::{Deserialize, Serialize};
