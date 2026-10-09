@@ -34,3 +34,7 @@ path = "../../tests/cli/help.rs"
 [[test]]
 name = "compare"
 path = "../../tests/cli/compare.rs"
+
+[[test]]
+name = "git_compare"
+path = "../../tests/cli/git_compare.rs"
