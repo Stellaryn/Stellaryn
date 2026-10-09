@@ -121,7 +121,7 @@ pub fn normalize_spec_entries(entries: &[ScSpecEntry]) -> Result<ContractInterfa
                 interface.types.push(UserType {
                     name: user_type.name.to_utf8_string_lossy(),
                     doc: user_type.doc.to_utf8_string_lossy(),
-                    definition: UserTypeKind::Enum { variants },
+                    definition: UserTypeKind::Union { variants },
                 });
             }
             ScSpecEntry::UdtEnumV0(user_type) => {

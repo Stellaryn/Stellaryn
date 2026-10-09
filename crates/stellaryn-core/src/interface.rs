@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use thiserror::Error;
 
-pub const INTERFACE_SCHEMA_VERSION: &str = "1.0";
+pub const INTERFACE_SCHEMA_VERSION: &str = "1.1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -157,6 +157,7 @@ pub struct EnumVariant {
 pub enum UserTypeKind {
     Struct { fields: Vec<StructField> },
     Enum { variants: Vec<EnumVariant> },
+    Union { variants: Vec<EnumVariant> },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -342,6 +343,12 @@ pub enum InterfaceValidationError {
 
     #[error("duplicate error value {value} in error '{error_name}'")]
     DuplicateErrorValue { error_name: String, value: u32 },
+
+    #[error("invalid variant shape for '{variant}' in type '{type_name}'")]
+    InvalidVariantShape { type_name: String, variant: String },
+
+    #[error("duplicate enum discriminant {value} in type '{type_name}'")]
+    DuplicateEnumDiscriminant { type_name: String, value: u32 },
 }
 
 fn require_name(path: &str, name: &str) -> Result<(), InterfaceValidationError> {
@@ -428,13 +435,45 @@ fn validate_user_type(user_type: &UserType) -> Result<(), InterfaceValidationErr
                     .validate(&format!("type:{}:field:{index}", user_type.name))?;
             }
         }
-        UserTypeKind::Enum { variants } => {
+        UserTypeKind::Enum { variants } | UserTypeKind::Union { variants } => {
             validate_named_members(
                 &format!("type:{}", user_type.name),
                 "variant",
                 variants.iter().map(|variant| variant.name.as_str()),
             )?;
+            let mut discriminants = BTreeSet::new();
             for (variant_index, variant) in variants.iter().enumerate() {
+                match &user_type.definition {
+                    UserTypeKind::Enum { .. } => {
+                        let value = variant.discriminant.ok_or_else(|| {
+                            InterfaceValidationError::InvalidVariantShape {
+                                type_name: user_type.name.clone(),
+                                variant: variant.name.clone(),
+                            }
+                        })?;
+                        if !variant.fields.is_empty() {
+                            return Err(InterfaceValidationError::InvalidVariantShape {
+                                type_name: user_type.name.clone(),
+                                variant: variant.name.clone(),
+                            });
+                        }
+                        if !discriminants.insert(value) {
+                            return Err(InterfaceValidationError::DuplicateEnumDiscriminant {
+                                type_name: user_type.name.clone(),
+                                value,
+                            });
+                        }
+                    }
+                    UserTypeKind::Union { .. } => {
+                        if variant.discriminant.is_some() {
+                            return Err(InterfaceValidationError::InvalidVariantShape {
+                                type_name: user_type.name.clone(),
+                                variant: variant.name.clone(),
+                            });
+                        }
+                    }
+                    UserTypeKind::Struct { .. } => {}
+                }
                 let named_fields: Vec<_> = variant
                     .fields
                     .iter()

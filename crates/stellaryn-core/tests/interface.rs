@@ -56,10 +56,7 @@ fn sample_interface() -> ContractInterface {
                             name: "Paused".into(),
                             discriminant: Some(1),
                             doc: String::new(),
-                            fields: vec![VariantField {
-                                name: None,
-                                type_ref: TypeRef::primitive("u32"),
-                            }],
+                            fields: Vec::new(),
                         },
                     ],
                 },

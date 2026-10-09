@@ -217,8 +217,8 @@ fn maps_all_current_spec_entry_categories() {
         .iter()
         .find(|item| item.name == "Action")
         .unwrap();
-    assert!(matches!(action.definition, UserTypeKind::Enum { .. }));
-    if let UserTypeKind::Enum { variants } = &action.definition {
+    assert!(matches!(action.definition, UserTypeKind::Union { .. }));
+    if let UserTypeKind::Union { variants } = &action.definition {
         assert_eq!(variants[1].fields.len(), 2);
         assert_eq!(variants[1].fields[0].name, None);
     }
