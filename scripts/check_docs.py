@@ -115,7 +115,7 @@ def check_navigation(root: Path) -> list[str]:
 def check_readme_milestones(root: Path) -> list[str]:
     """Keep product-facing README free of internal numbered project phases."""
     readme = root / "README.md"
-    if readme.is_file() and re.search(r"\\bphase\\s+\\d+\\b", readme.read_text(encoding="utf-8"), re.IGNORECASE):
+    if readme.is_file() and re.search(r"\bphase\s+\d+\b", readme.read_text(encoding="utf-8"), re.IGNORECASE):
         return ["README.md: remove numbered development phase references; use docs/build-plan.md"]
     return []
 
