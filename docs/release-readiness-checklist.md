@@ -1,13 +1,13 @@
 # Stellaryn v0.1.0 — release and remaining readiness checklist
 
-> **Verified release update, 2026-10-09:** [v0.1.0 was published](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) from tag SHA `17de3459ef24641c6544e845e35ba5a7fbcd0f9e`, with six platform/checksum assets. [Release workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203) completed successfully. This checklist also preserves the previous historical prepublication baseline and tracks **still-open** GitBook and application work; it is not evidence of Drips eligibility.
+> **Verified release update, 2026-10-09:** [v0.1.0 was published](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) from tag SHA `17de3459ef24641c6544e845e35ba5a7fbcd0f9e`, with six platform/checksum assets. [Release workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203) completed successfully. This checklist also preserves the previous historical prepublication baseline and tracks completed GitBook publication and still-open application work; it is not evidence of Drips eligibility.
 
 ## Verified public release (2026-10-09)
 
 - [x] Workspace and lockfile version `0.1.0`; CLI version and product metadata tested on final release commit.
 - [x] Final baseline same-commit [CI](https://github.com/Stellaryn/Stellaryn/actions/runs/37982084864), [Linux/Windows/macOS candidates](https://github.com/Stellaryn/Stellaryn/actions/runs/37982085083), and [publication workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203) successful.
 - [x] [Public v0.1.0 Release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) verified: tag, six uploaded archive/`.sha256` assets, linked release notes, and tag SHA `17de3459ef24641c6544e845e35ba5a7fbcd0f9e`.
-- [ ] GitBook site remains unverified; do not describe its publication as complete until imported pages and public URL are checked.
+- [x] [Public GitBook documentation](https://oobayemi.gitbook.io/stellaryn-documentation/) verified through the GitBook publishing API (`published=true`), after successful GitHub → GitBook import and inspection of the populated navigation and key pages.
 - [ ] Stellar Wave/Drips eligibility, application and approval remain unverified.
 
 ## Historical verified release-hardening baseline
@@ -26,10 +26,10 @@
 
 - [x] Maintain repository-owned documentation in `docs/` with `.gitbook.yaml` at the repository root.
 - [x] Create an empty GitBook site named **Stellaryn Documentation** in the connected organization (site ID `site_V9vjJ` on 2026-10-09).
-- [ ] Complete the **pending** GitBook site-level Git Sync setup in the app against `Stellaryn/Stellaryn`, branch `main`, project root `./`. The repository's `gitbook-docs.yaml` now exists; site-level authorization/sync remains pending.
-- [ ] For the **initial import**, choose **GitHub → GitBook**. Never choose GitBook → GitHub when importing into the empty site, since that could overwrite existing repository documentation.
-- [ ] Verify imported navigation, code blocks, internal links, commands, images, limitation wording, and that internal milestones do not appear in the public root README.
-- [ ] Publish the populated site and check its actual public URL. Add that URL to the public README only after it resolves.
+- [x] GitBook site Git Sync is **active**, linked to `Stellaryn/Stellaryn` `main`, with a successful GitHub → GitBook import of `./docs` on 2026-10-09.
+- [x] Initial import used **GitHub → GitBook**, verified in GitBook operation metadata. Future updates should preserve source-of-truth discipline and avoid reversing sync unintentionally.
+- [x] Inspect imported navigation and representative pages covering setup commands, examples, release checksums, limitations and README safeguards. GitBook converted internal doc links to site-relative paths; automated GitHub documentation checks remain required. No independent browser crawl or full visual review is claimed.
+- [x] Publish the populated site and confirm GitBook reports the public URL [https://oobayemi.gitbook.io/stellaryn-documentation/](https://oobayemi.gitbook.io/stellaryn-documentation/). Add the URL to public README via reviewed PR. A separate browser-load verification remains advisable because public browser access was unavailable from the assistant's environment.
 
 ## Release preparation (no publishing without approval)
 
