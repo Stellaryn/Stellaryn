@@ -34,7 +34,7 @@ Terminal and JSON first. Add other formats only with a clear integration need.
 
 ## Phase 9 — Git revision comparison
 
-Compare committed refs without mutating the active worktree.
+Implemented: `stellaryn git --repo . --from REF --to REF --wasm PATH`, optionally `--after-wasm PATH` for renamed artifacts. Reads bounded compiled WASM blobs directly from Git objects with no checkout or worktree mutation. Keeps the existing report and CI policy contracts.
 
 ## Phase 10 — Fixture matrix
 
