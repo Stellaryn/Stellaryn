@@ -397,7 +397,10 @@ fn compare_event_parameters(
                     EventErrorChangeId::EventParameterTypeChanged,
                     subject.clone(),
                     ChangeClassification::Breaking,
-                    format!("Type of event parameter '{name}' changed in '{}'.", before.name),
+                    format!(
+                        "Type of event parameter '{name}' changed in '{}'.",
+                        before.name
+                    ),
                     Some(item.type_ref.display_name()),
                     Some(updated.type_ref.display_name()),
                 );
@@ -408,7 +411,10 @@ fn compare_event_parameters(
                     EventErrorChangeId::EventParameterLocationChanged,
                     subject,
                     ChangeClassification::Breaking,
-                    format!("Location of event parameter '{name}' changed in '{}'.", before.name),
+                    format!(
+                        "Location of event parameter '{name}' changed in '{}'.",
+                        before.name
+                    ),
                     Some(format!("{:?}", item.location)),
                     Some(format!("{:?}", updated.location)),
                 );
@@ -434,7 +440,10 @@ fn compare_event_parameters(
             EventErrorChangeId::EventParameterReordered,
             before.stable_id(),
             ChangeClassification::Breaking,
-            format!("Existing event parameters changed order in '{}'.", before.name),
+            format!(
+                "Existing event parameters changed order in '{}'.",
+                before.name
+            ),
             Some(surviving_before.join(", ")),
             Some(surviving_after.join(", ")),
         );
@@ -486,7 +495,10 @@ fn compare_event_parameters(
                 EventErrorChangeId::EventParameterRemoved,
                 format!("{}::parameter:{name}", before.stable_id()),
                 ChangeClassification::Breaking,
-                format!("Event parameter '{name}' at index {index} was removed from '{}'.", before.name),
+                format!(
+                    "Event parameter '{name}' at index {index} was removed from '{}'.",
+                    before.name
+                ),
                 Some(event_parameter_evidence(item)),
                 None,
             );
@@ -500,7 +512,10 @@ fn compare_event_parameters(
                 EventErrorChangeId::EventParameterAdded,
                 format!("{}::parameter:{name}", after.stable_id()),
                 ChangeClassification::Breaking,
-                format!("Event parameter '{name}' was added at index {index} in '{}'.", after.name),
+                format!(
+                    "Event parameter '{name}' was added at index {index} in '{}'.",
+                    after.name
+                ),
                 None,
                 Some(event_parameter_evidence(item)),
             );

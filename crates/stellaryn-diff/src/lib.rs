@@ -11,10 +11,10 @@ pub use function::{
     diff_functions, ChangeClassification, DiffError, FunctionChange, FunctionChangeId, FunctionDiff,
 };
 
-pub use types::{diff_types, TypeChange, TypeChangeId, TypeDiff};
 pub use events_errors::{
     diff_errors, diff_events, diff_events_and_errors, EventErrorChange, EventErrorChangeId,
     EventErrorDiff,
 };
+pub use types::{diff_types, TypeChange, TypeChangeId, TypeDiff};
 
 pub const COMPONENT: &str = "stellaryn-diff";
