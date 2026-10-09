@@ -26,7 +26,7 @@ Implemented: numeric error-code changes, renames and additions/removals; event p
 
 ## Phase 7 — Verdict and exit policy
 
-Stable compatible/review/incompatible policy and process exit semantics.
+Implemented: typed aggregation across functions, custom types, events, and errors; deterministic finding ordering and per-domain counts; compatible/review-required/incompatible spec-level verdict; configurable CI failure thresholds and reserved exit codes. End-user CLI wiring is Phase 8.
 
 ## Phase 8 — Reports
 
