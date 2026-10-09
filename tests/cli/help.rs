@@ -11,7 +11,7 @@ fn help_describes_available_comparison_and_scope() {
     let output = binary().arg("--help").output().unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(stdout.contains("Compare compiled Soroban contract WASM files"));
+    assert!(stdout.contains("Compare Soroban contract WASM files"));
     assert!(stdout.contains("Passing Stellaryn is not a security audit"));
     assert!(stdout.contains("not a security audit"));
 }
