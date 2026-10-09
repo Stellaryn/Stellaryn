@@ -6,8 +6,7 @@
 mod function;
 
 pub use function::{
-    diff_functions, ChangeClassification, DiffError, FunctionChange, FunctionChangeId,
-    FunctionDiff,
+    diff_functions, ChangeClassification, DiffError, FunctionChange, FunctionChangeId, FunctionDiff,
 };
 
 pub const COMPONENT: &str = "stellaryn-diff";
