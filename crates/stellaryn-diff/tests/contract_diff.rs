@@ -100,9 +100,13 @@ fn event(name: &str, parameters: Vec<(&str, &str)>) -> EventDefinition {
 
 fn review_inputs() -> (ContractInterface, ContractInterface) {
     let mut before = empty();
-    before.functions.push(function("balance", vec![("owner", "Address")]));
+    before
+        .functions
+        .push(function("balance", vec![("owner", "Address")]));
     before.types.push(enum_type("Status", &[("Active", 0)]));
-    before.events.push(event("Transfer", vec![("amount", "u64")]));
+    before
+        .events
+        .push(event("Transfer", vec![("amount", "u64")]));
     before.errors.push(error(vec![("Denied", 1)]));
     let mut after = before.clone();
     after.functions[0].parameters[0].name = "account".into();
@@ -125,9 +129,13 @@ fn review_inputs() -> (ContractInterface, ContractInterface) {
 
 fn breaking_inputs() -> (ContractInterface, ContractInterface) {
     let mut before = empty();
-    before.functions.push(function("transfer", vec![("amount", "i128")]));
+    before
+        .functions
+        .push(function("transfer", vec![("amount", "i128")]));
     before.types.push(record("Account", "i128"));
-    before.events.push(event("Transfer", vec![("amount", "i128")]));
+    before
+        .events
+        .push(event("Transfer", vec![("amount", "i128")]));
     before.errors.push(error(vec![("Denied", 1)]));
     let mut after = before.clone();
     after.functions[0].parameters[0].type_ref = TypeRef::primitive("u128");
@@ -222,8 +230,14 @@ fn breaking_takes_precedence_over_review_and_additions() {
     assert_eq!(result.totals.breaking, 1);
     assert_eq!(result.totals.review_required, 4);
     assert_eq!(result.totals.non_breaking, 1);
-    assert_eq!(result.findings[0].classification, ChangeClassification::Breaking);
-    assert_eq!(result.findings.last().unwrap().classification, ChangeClassification::NonBreaking);
+    assert_eq!(
+        result.findings[0].classification,
+        ChangeClassification::Breaking
+    );
+    assert_eq!(
+        result.findings.last().unwrap().classification,
+        ChangeClassification::NonBreaking
+    );
 }
 
 #[test]
@@ -231,16 +245,20 @@ fn rule_ids_remain_typed_and_preserve_original_evidence() {
     let (before, after) = breaking_inputs();
     let result = diff_contracts(&before, &after).unwrap();
     assert!(result.findings.iter().any(|f| matches!(
-        f.rule, CompatibilityRule::Function(FunctionChangeId::FunctionParameterTypeChanged)
+        f.rule,
+        CompatibilityRule::Function(FunctionChangeId::FunctionParameterTypeChanged)
     )));
     assert!(result.findings.iter().any(|f| matches!(
-        f.rule, CompatibilityRule::CustomType(TypeChangeId::StructFieldTypeChanged)
+        f.rule,
+        CompatibilityRule::CustomType(TypeChangeId::StructFieldTypeChanged)
     )));
     assert!(result.findings.iter().any(|f| matches!(
-        f.rule, CompatibilityRule::Event(EventErrorChangeId::EventPrefixTopicsChanged)
+        f.rule,
+        CompatibilityRule::Event(EventErrorChangeId::EventPrefixTopicsChanged)
     )));
     assert!(result.findings.iter().any(|f| matches!(
-        f.rule, CompatibilityRule::Error(EventErrorChangeId::ErrorCodeChanged)
+        f.rule,
+        CompatibilityRule::Error(EventErrorChangeId::ErrorCodeChanged)
     )));
     let type_finding = result
         .findings
@@ -290,7 +308,10 @@ fn finding_order_is_severity_first_then_stable_rule_and_subject() {
         .findings
         .iter()
         .filter(|item| {
-            matches!(item.rule, CompatibilityRule::Function(FunctionChangeId::FunctionAdded))
+            matches!(
+                item.rule,
+                CompatibilityRule::Function(FunctionChangeId::FunctionAdded)
+            )
         })
         .map(|item| item.subject.as_str())
         .collect();
@@ -315,10 +336,8 @@ fn all_domain_totals_equal_summary_count() {
     after.events.push(event("NewEvent", Vec::new()));
     let result = diff_contracts(&before, &after).unwrap();
     let by = &result.by_domain;
-    let sum = by.functions.total()
-        + by.custom_types.total()
-        + by.events.total()
-        + by.errors.total();
+    let sum =
+        by.functions.total() + by.custom_types.total() + by.events.total() + by.errors.total();
     assert_eq!(sum, result.totals.total());
     assert_eq!(sum, result.findings.len());
 }
@@ -423,7 +442,9 @@ fn fail_on_strings_have_explicit_parse_contract() {
     assert_eq!(FailOn::from_str("review").unwrap(), FailOn::Review);
     assert_eq!(FailOn::from_str("never").unwrap(), FailOn::Never);
     let error = FailOn::from_str("review_required").unwrap_err();
-    assert!(error.to_string().contains("expected 'breaking', 'review', or 'never'"));
+    assert!(error
+        .to_string()
+        .contains("expected 'breaking', 'review', or 'never'"));
     assert_eq!(error.input, "review_required");
 }
 

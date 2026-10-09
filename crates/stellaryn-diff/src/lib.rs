@@ -24,8 +24,7 @@ pub use aggregate::{
     FindingCounts,
 };
 pub use policy::{
-    ExitPolicy, FailOn, ParseFailOnError, EXIT_ANALYSIS_ERROR, EXIT_POLICY_VIOLATION,
-    EXIT_SUCCESS,
+    ExitPolicy, FailOn, ParseFailOnError, EXIT_ANALYSIS_ERROR, EXIT_POLICY_VIOLATION, EXIT_SUCCESS,
 };
 
 pub const COMPONENT: &str = "stellaryn-diff";

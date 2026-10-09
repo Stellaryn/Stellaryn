@@ -131,10 +131,30 @@ pub fn diff_contracts(
     after: &ContractInterface,
 ) -> Result<ContractDiff, DiffError> {
     let mut findings = Vec::new();
-    findings.extend(diff_functions(before, after)?.changes.into_iter().map(from_function));
-    findings.extend(diff_types(before, after)?.changes.into_iter().map(from_type));
-    findings.extend(diff_events(before, after)?.changes.into_iter().map(from_event));
-    findings.extend(diff_errors(before, after)?.changes.into_iter().map(from_error));
+    findings.extend(
+        diff_functions(before, after)?
+            .changes
+            .into_iter()
+            .map(from_function),
+    );
+    findings.extend(
+        diff_types(before, after)?
+            .changes
+            .into_iter()
+            .map(from_type),
+    );
+    findings.extend(
+        diff_events(before, after)?
+            .changes
+            .into_iter()
+            .map(from_event),
+    );
+    findings.extend(
+        diff_errors(before, after)?
+            .changes
+            .into_iter()
+            .map(from_error),
+    );
 
     findings.sort_by(|left, right| {
         severity(left.classification)
