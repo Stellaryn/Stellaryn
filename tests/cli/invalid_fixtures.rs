@@ -5,7 +5,7 @@ mod fixtures;
 
 use fixtures::*;
 use std::{fs, process::Command};
-use stellar_xdr::{ScSpecEntry, ScSpecTypeDef};
+use stellar_xdr::ScSpecTypeDef;
 use tempfile::TempDir;
 
 fn run(before: &[u8], after: &[u8]) -> std::process::Output {

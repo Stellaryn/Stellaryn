@@ -25,7 +25,7 @@ fn replace_args(entries: &mut [ScSpecEntry], args: Vec<stellar_xdr::ScSpecFuncti
     function_mut(entries).inputs = args.try_into().unwrap();
 }
 
-fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
+fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) -> Result<(), String> {
     match change {
         "unchanged" => {}
         "metadata_only" => {
@@ -253,12 +253,13 @@ fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
             item.params = fields.try_into().unwrap();
         }
         "mixed_severity" => {
-            apply("parameter_type", entries);
-            apply("error_case_added", entries);
-            apply("event_added", entries);
+            apply("parameter_type", entries)?;
+            apply("error_case_added", entries)?;
+            apply("event_added", entries)?;
         }
-        other => assert!(false, "unknown fixture mutation {other}"),
+        other => return Err(format!("unknown fixture mutation {other}")),
     }
+    Ok(())
 }
 
 fn run(before: &[u8], after: &[u8]) -> std::process::Output {
@@ -596,7 +597,7 @@ fn golden_soroban_spec_matrix_covers_every_contract_category() {
     );
     for case in cases {
         let mut upgraded = base.clone();
-        apply(case.mutation, &mut upgraded);
+        apply(case.mutation, &mut upgraded).unwrap();
         let output = run(&bytes, &wasm(&upgraded));
         assert_eq!(
             output.status.code(),
@@ -631,7 +632,7 @@ fn golden_soroban_spec_matrix_covers_every_contract_category() {
 fn mixed_finding_order_is_severity_first_and_never_drops_review_findings() {
     let base = baseline();
     let mut after = base.clone();
-    apply("mixed_severity", &mut after);
+    apply("mixed_severity", &mut after).unwrap();
     let out = run(&wasm(&base), &wasm(&after));
     let json: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     let changes = json["analysis"]["findings"].as_array().unwrap();
