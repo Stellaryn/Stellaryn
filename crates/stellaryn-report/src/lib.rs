@@ -97,7 +97,7 @@ pub fn render_terminal(analysis: &ContractDiff, before: &str, after: &str) -> St
             }
         }
     }
-    result.push_str("\n");
+    result.push('\n');
     result.push_str(DISCLAIMER);
     result.push('\n');
     result
