@@ -19,8 +19,8 @@ The artifact name includes `rustc -vV`'s *actual host triple*, rather than assum
 Install Rust `1.96.0` and Python `3.11+`, then from the repository root:
 
 ```sh
-cargo test --workspace --all-features
-cargo build --release -p stellaryn-cli
+cargo test --locked --workspace --all-features
+cargo build --locked --release -p stellaryn-cli
 python3 -m unittest discover -s scripts -p 'test_*.py'
 python3 scripts/package_release.py build --dist dist
 python3 scripts/package_release.py verify --dist dist
@@ -74,5 +74,5 @@ These are **temporary GitHub Actions artifacts**, not public release downloads. 
 - A successful CI run is a necessary portability signal, not a formal security audit or OS compatibility certification.
 - The current native workflow builds each target separately; it does not claim byte-identical binaries across OSes.
 - These candidates are neither notarized nor cryptographically signed with a release-maintainer identity. SHA-256 detects accidental changes when downloaded from a trusted source, but is **not** a signature.
-- The Rust dependency graph should be locked and verified for a reproducible official release. Changes to dependency versions or toolchains must be tested and documented.
+- The Rust dependency graph should be locked and verified for a reproducible official release. A committed `Cargo.lock` pins the resolution graph; dependency/toolchain changes must be tested and documented.
 - A public tag, consolidated checksums across targets, and a stable published GitHub Release are **not** part of this workflow.

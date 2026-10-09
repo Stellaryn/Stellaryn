@@ -32,19 +32,13 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        run: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
 
       - name: Tests
-        run: cargo test --workspace --all-features
-
-      - name: Capture resolved lockfile for review
-        run: |
-          echo STELLARYN_LOCK_BEGIN
-          cat Cargo.lock
-          echo STELLARYN_LOCK_END
+        run: cargo test --locked --workspace --all-features
 
       - name: Real-world compatibility probes
         run: python3 scripts/real_world_probe.py
 
       - name: CLI help
-        run: cargo run -p stellaryn-cli -- --help
+        run: cargo run --locked -p stellaryn-cli -- --help

@@ -13,7 +13,7 @@ Stellaryn is a **local-first Rust CLI** that compares the public specifications 
 ```bash
 git clone https://github.com/Stellaryn/Stellaryn.git
 cd Stellaryn
-cargo build --release -p stellaryn-cli
+cargo build --locked --release -p stellaryn-cli
 ./target/release/stellaryn --help
 ```
 
@@ -80,7 +80,7 @@ The default policy is `--fail-on breaking`; alternatives are `review` and `never
 ```bash
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo test --workspace --all-features
+cargo test --locked --workspace --all-features
 python3 scripts/check_docs.py
 python3 -m unittest discover -s scripts -p 'test_*.py'
 python3 scripts/real_world_probe.py

@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures" / "real"
-COMMAND = ["cargo", "run", "--quiet", "-p", "stellaryn-cli", "--", "compare"]
+COMMAND = ["cargo", "run", "--locked", "--quiet", "-p", "stellaryn-cli", "--", "compare"]
 
 ARTIFACTS = (
     "testnet_increment.wasm",
