@@ -49,6 +49,16 @@ class DocsCheckerTests(unittest.TestCase):
             self.assertTrue(any("first link" in item for item in issues))
             self.assertTrue(any("missing entry" in item for item in issues))
 
+    def test_readme_blocks_internal_milestone_numbers(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            readme = root / "README.md"
+            readme.write_text("# Stellaryn\\n**Phase 13** / pre-alpha\\n", encoding="utf-8")
+            self.assertEqual(len(check_docs.check_readme_milestones(root)), 1)
+            readme.write_text("# Stellaryn\\n**Pre-release**\\n", encoding="utf-8")
+            self.assertEqual(check_docs.check_readme_milestones(root), [])
+
+
 
 if __name__ == "__main__":
     unittest.main()

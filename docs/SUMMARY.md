@@ -7,6 +7,7 @@
 * [Worked examples](examples.md)
 * [CI integration](ci-integration.md)
 * [Troubleshooting](troubleshooting.md)
+* [Release-candidate builds](releasing.md)
 * [What Stellaryn does not prove](limitations.md)
 
 ## Internals and contribution

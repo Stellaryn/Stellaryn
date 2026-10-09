@@ -14,6 +14,7 @@ Stellaryn is a local-first, pre-alpha Rust CLI for inspecting the **public speci
 - [Troubleshooting](troubleshooting.md) — missing specs, Git errors, malformed WASM, and confusing verdicts.
 - [Compatibility rules](rule-authoring.md) — how rules work and how to propose or implement changes.
 - [Scope and limitations](limitations.md) — evidence boundaries and what is not analyzed.
+- [Release-candidate packages](releasing.md) — archive layout, SHA-256 verification and platform evidence.
 - [Contributing](../CONTRIBUTING.md) — developer setup and PR checklist.
 - [Security policy](../SECURITY.md) — reporting sensitive findings.
 
