@@ -17,7 +17,7 @@ cargo build --locked --release -p stellaryn-cli
 ./target/release/stellaryn --help
 ```
 
-On Windows, the executable is `target/release/stellaryn.exe`. Native Windows packaging and cross-platform release binaries are **not yet verified**; the project's CI currently runs on Ubuntu.
+On Windows, the executable is `target/release/stellaryn.exe`. The [native release-candidate workflow](https://github.com/Stellaryn/Stellaryn/actions/workflows/portability.yml) builds, tests, packages and smoke-tests Linux, Windows and macOS artifacts. These are CI-verified release candidates, **not** a published GitHub Release or certification of every machine and OS version.
 
 ## First comparison with checked-in real WASM
 
