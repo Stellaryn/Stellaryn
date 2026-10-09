@@ -31,7 +31,10 @@ fn assert_failure(base: &[u8], bad: &[u8], expected: &str) {
         "expected analysis failure for {expected}: {}",
         String::from_utf8_lossy(&result.stderr)
     );
-    assert!(result.stdout.is_empty(), "invalid WASM must not return a compatibility verdict");
+    assert!(
+        result.stdout.is_empty(),
+        "invalid WASM must not return a compatibility verdict"
+    );
     let stderr = String::from_utf8(result.stderr).unwrap();
     assert!(
         stderr.contains(expected),
@@ -60,14 +63,27 @@ fn malformed_and_ambiguous_spec_sections_fail_closed() {
     for (name, artifact, expected) in [
         ("bad magic", invalid_binary, "reading wasm"),
         ("missing spec section", no_spec, "contract spec not found"),
-        ("empty spec section", empty_section, "contains no contract specification entries"),
+        (
+            "empty spec section",
+            empty_section,
+            "contains no contract specification entries",
+        ),
         ("invalid XDR", invalid_xdr, "parsing contract spec"),
         ("truncated WASM", truncated, "reading wasm"),
         ("corrupt trailing section", bad_suffix, "reading wasm"),
-        ("duplicate contract spec sections", duplicate_section, "multiple contractspecv0 sections"),
+        (
+            "duplicate contract spec sections",
+            duplicate_section,
+            "multiple contractspecv0 sections",
+        ),
     ] {
         let result = run(&base, &artifact);
-        assert_eq!(result.status.code(), Some(1), "{name}: {}", String::from_utf8_lossy(&result.stderr));
+        assert_eq!(
+            result.status.code(),
+            Some(1),
+            "{name}: {}",
+            String::from_utf8_lossy(&result.stderr)
+        );
         assert!(result.stdout.is_empty(), "{name} yielded false confidence");
         assert!(
             String::from_utf8_lossy(&result.stderr).contains(expected),
@@ -109,14 +125,22 @@ fn invalid_normalized_spec_entries_fail_closed() {
     let mut cases: Vec<_> = item.cases.iter().cloned().collect();
     cases[1].value = cases[0].value;
     item.cases = cases.try_into().unwrap();
-    assert_failure(&base, &wasm(&duplicate_error_codes), "duplicate error value");
+    assert_failure(
+        &base,
+        &wasm(&duplicate_error_codes),
+        "duplicate error value",
+    );
 
     let mut duplicate_event_parameters = base_entries.clone();
     let item = event_mut(&mut duplicate_event_parameters);
     let mut params: Vec<_> = item.params.iter().cloned().collect();
     params[1].name = "from".try_into().unwrap();
     item.params = params.try_into().unwrap();
-    assert_failure(&base, &wasm(&duplicate_event_parameters), "duplicate parameter");
+    assert_failure(
+        &base,
+        &wasm(&duplicate_event_parameters),
+        "duplicate parameter",
+    );
 }
 
 #[test]

@@ -46,9 +46,10 @@ fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
             values.reverse();
             item.cases = values.try_into().unwrap();
         }
-        "function_added" => entries.push(function("balance", vec![
-            argument("owner", ScSpecTypeDef::Address),
-        ])),
+        "function_added" => entries.push(function(
+            "balance",
+            vec![argument("owner", ScSpecTypeDef::Address)],
+        )),
         "function_removed" => entries.retain(|e| !matches!(e, ScSpecEntry::FunctionV0(_))),
         "function_renamed" => function_mut(entries).name = symbol("pay"),
         "parameter_renamed" => {
@@ -88,7 +89,9 @@ fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
             }));
             replace_args(entries, args);
         }
-        "output_type" => function_mut(entries).outputs = vec![ScSpecTypeDef::U32].try_into().unwrap(),
+        "output_type" => {
+            function_mut(entries).outputs = vec![ScSpecTypeDef::U32].try_into().unwrap()
+        }
         "output_count" => function_mut(entries).outputs = Vec::new().try_into().unwrap(),
         "struct_added" => {
             let mut item = struct_mut(entries).clone();
@@ -146,7 +149,10 @@ fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
         "type_kind_changed" => {
             let mut item = union_mut(entries).clone();
             item.name = "Status".try_into().unwrap();
-            let pos = entries.iter().position(|e| matches!(e, ScSpecEntry::UdtEnumV0(_))).unwrap();
+            let pos = entries
+                .iter()
+                .position(|e| matches!(e, ScSpecEntry::UdtEnumV0(_)))
+                .unwrap();
             entries[pos] = ScSpecEntry::UdtUnionV0(item);
         }
         "union_added" => {
@@ -169,7 +175,9 @@ fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
             let item = union_mut(entries);
             let mut cases: Vec<_> = item.cases.iter().cloned().collect();
             if let ScSpecUdtUnionCaseV0::TupleV0(value) = &mut cases[1] {
-                value.type_ = vec![ScSpecTypeDef::Address, ScSpecTypeDef::U128].try_into().unwrap();
+                value.type_ = vec![ScSpecTypeDef::Address, ScSpecTypeDef::U128]
+                    .try_into()
+                    .unwrap();
             }
             item.cases = cases.try_into().unwrap();
         }
@@ -216,7 +224,9 @@ fn apply(change: &str, entries: &mut Vec<ScSpecEntry>) {
             entries.push(ScSpecEntry::EventV0(item));
         }
         "event_removed" => entries.retain(|e| !matches!(e, ScSpecEntry::EventV0(_))),
-        "event_prefix" => event_mut(entries).prefix_topics = vec![symbol("transfer_v2")].try_into().unwrap(),
+        "event_prefix" => {
+            event_mut(entries).prefix_topics = vec![symbol("transfer_v2")].try_into().unwrap()
+        }
         "event_format" => event_mut(entries).data_format = ScSpecEventDataFormat::Map,
         "event_param_type" => {
             let item = event_mut(entries);
@@ -269,69 +279,349 @@ fn run(before: &[u8], after: &[u8]) -> std::process::Output {
 #[test]
 fn golden_soroban_spec_matrix_covers_every_contract_category() {
     let cases = [
-        Case { name:"unchanged", mutation:"unchanged", verdict:"COMPATIBLE", rule:None, findings:0 },
-        Case { name:"docs only", mutation:"metadata_only", verdict:"COMPATIBLE", rule:None, findings:0 },
-        Case { name:"top-level XDR reorder", mutation:"entry_order", verdict:"COMPATIBLE", rule:None, findings:0 },
-        Case { name:"numeric enum declaration reorder", mutation:"enum_order", verdict:"COMPATIBLE", rule:None, findings:0 },
-        Case { name:"error declaration reorder", mutation:"error_order", verdict:"COMPATIBLE", rule:None, findings:0 },
-        Case { name:"add function", mutation:"function_added", verdict:"COMPATIBLE", rule:Some("FUNCTION_ADDED"), findings:1 },
-        Case { name:"remove function", mutation:"function_removed", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_REMOVED"), findings:1 },
-        Case { name:"rename function", mutation:"function_renamed", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_REMOVED"), findings:2 },
-        Case { name:"rename input", mutation:"parameter_renamed", verdict:"REVIEW_REQUIRED", rule:Some("FUNCTION_PARAMETER_RENAMED"), findings:1 },
-        Case { name:"reorder inputs", mutation:"parameter_reordered", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_PARAMETER_REORDERED"), findings:1 },
-        Case { name:"add input", mutation:"parameter_added", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_PARAMETER_ADDED"), findings:1 },
-        Case { name:"remove input", mutation:"parameter_removed", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_PARAMETER_REMOVED"), findings:1 },
-        Case { name:"change input type", mutation:"parameter_type", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_PARAMETER_TYPE_CHANGED"), findings:1 },
-        Case { name:"change to nested map/option/vec", mutation:"nested_type", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_PARAMETER_TYPE_CHANGED"), findings:1 },
-        Case { name:"change output type", mutation:"output_type", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_OUTPUT_TYPE_CHANGED"), findings:1 },
-        Case { name:"change output count", mutation:"output_count", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_OUTPUT_COUNT_CHANGED"), findings:1 },
-        Case { name:"add struct", mutation:"struct_added", verdict:"COMPATIBLE", rule:Some("TYPE_ADDED"), findings:1 },
-        Case { name:"add struct field", mutation:"struct_field_added", verdict:"INCOMPATIBLE", rule:Some("STRUCT_FIELD_ADDED"), findings:1 },
-        Case { name:"remove struct field", mutation:"struct_field_removed", verdict:"INCOMPATIBLE", rule:Some("STRUCT_FIELD_REMOVED"), findings:1 },
-        Case { name:"struct field type", mutation:"struct_field_type", verdict:"INCOMPATIBLE", rule:Some("STRUCT_FIELD_TYPE_CHANGED"), findings:1 },
-        Case { name:"BytesN size", mutation:"bytes_n_length", verdict:"INCOMPATIBLE", rule:Some("STRUCT_FIELD_TYPE_CHANGED"), findings:1 },
-        Case { name:"struct field reorder", mutation:"struct_field_order", verdict:"REVIEW_REQUIRED", rule:Some("STRUCT_FIELD_REORDERED"), findings:1 },
-        Case { name:"add numeric enum variant", mutation:"enum_added", verdict:"REVIEW_REQUIRED", rule:Some("ENUM_VARIANT_ADDED"), findings:1 },
-        Case { name:"remove numeric enum variant", mutation:"enum_removed", verdict:"INCOMPATIBLE", rule:Some("ENUM_VARIANT_REMOVED"), findings:1 },
-        Case { name:"enum discriminant changes", mutation:"enum_discriminant", verdict:"INCOMPATIBLE", rule:Some("ENUM_DISCRIMINANT_CHANGED"), findings:1 },
-        Case { name:"numeric enum changes to tagged union", mutation:"type_kind_changed", verdict:"INCOMPATIBLE", rule:Some("TYPE_KIND_CHANGED"), findings:1 },
-        Case { name:"add union case", mutation:"union_added", verdict:"REVIEW_REQUIRED", rule:Some("UNION_VARIANT_ADDED"), findings:1 },
-        Case { name:"remove union case", mutation:"union_removed", verdict:"INCOMPATIBLE", rule:Some("UNION_VARIANT_REMOVED"), findings:1 },
-        Case { name:"union payload type", mutation:"union_payload_type", verdict:"INCOMPATIBLE", rule:Some("UNION_PAYLOAD_TYPE_CHANGED"), findings:1 },
-        Case { name:"union payload arity", mutation:"union_payload_count", verdict:"INCOMPATIBLE", rule:Some("UNION_PAYLOAD_COUNT_CHANGED"), findings:1 },
-        Case { name:"add error enum", mutation:"error_definition_added", verdict:"COMPATIBLE", rule:Some("ERROR_DEFINITION_ADDED"), findings:1 },
-        Case { name:"add error case", mutation:"error_case_added", verdict:"REVIEW_REQUIRED", rule:Some("ERROR_CASE_ADDED"), findings:1 },
-        Case { name:"remove error case", mutation:"error_case_removed", verdict:"INCOMPATIBLE", rule:Some("ERROR_CASE_REMOVED"), findings:1 },
-        Case { name:"rename error case stable code", mutation:"error_case_renamed", verdict:"REVIEW_REQUIRED", rule:Some("ERROR_CASE_RENAMED"), findings:1 },
-        Case { name:"change error code", mutation:"error_code_changed", verdict:"INCOMPATIBLE", rule:Some("ERROR_CODE_CHANGED"), findings:1 },
-        Case { name:"add event", mutation:"event_added", verdict:"COMPATIBLE", rule:Some("EVENT_ADDED"), findings:1 },
-        Case { name:"remove event", mutation:"event_removed", verdict:"INCOMPATIBLE", rule:Some("EVENT_REMOVED"), findings:1 },
-        Case { name:"event prefix change", mutation:"event_prefix", verdict:"INCOMPATIBLE", rule:Some("EVENT_PREFIX_TOPICS_CHANGED"), findings:1 },
-        Case { name:"event format change", mutation:"event_format", verdict:"INCOMPATIBLE", rule:Some("EVENT_DATA_FORMAT_CHANGED"), findings:1 },
-        Case { name:"event data type change", mutation:"event_param_type", verdict:"INCOMPATIBLE", rule:Some("EVENT_PARAMETER_TYPE_CHANGED"), findings:1 },
-        Case { name:"event topic/data location", mutation:"event_location", verdict:"INCOMPATIBLE", rule:Some("EVENT_PARAMETER_LOCATION_CHANGED"), findings:1 },
-        Case { name:"rename event data parameter", mutation:"event_param_renamed", verdict:"REVIEW_REQUIRED", rule:Some("EVENT_PARAMETER_RENAMED"), findings:1 },
-        Case { name:"event param reorder", mutation:"event_param_order", verdict:"INCOMPATIBLE", rule:Some("EVENT_PARAMETER_REORDERED"), findings:1 },
-        Case { name:"mixed breaking/review/additive", mutation:"mixed_severity", verdict:"INCOMPATIBLE", rule:Some("FUNCTION_PARAMETER_TYPE_CHANGED"), findings:3 },
+        Case {
+            name: "unchanged",
+            mutation: "unchanged",
+            verdict: "COMPATIBLE",
+            rule: None,
+            findings: 0,
+        },
+        Case {
+            name: "docs only",
+            mutation: "metadata_only",
+            verdict: "COMPATIBLE",
+            rule: None,
+            findings: 0,
+        },
+        Case {
+            name: "top-level XDR reorder",
+            mutation: "entry_order",
+            verdict: "COMPATIBLE",
+            rule: None,
+            findings: 0,
+        },
+        Case {
+            name: "numeric enum declaration reorder",
+            mutation: "enum_order",
+            verdict: "COMPATIBLE",
+            rule: None,
+            findings: 0,
+        },
+        Case {
+            name: "error declaration reorder",
+            mutation: "error_order",
+            verdict: "COMPATIBLE",
+            rule: None,
+            findings: 0,
+        },
+        Case {
+            name: "add function",
+            mutation: "function_added",
+            verdict: "COMPATIBLE",
+            rule: Some("FUNCTION_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "remove function",
+            mutation: "function_removed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_REMOVED"),
+            findings: 1,
+        },
+        Case {
+            name: "rename function",
+            mutation: "function_renamed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_REMOVED"),
+            findings: 2,
+        },
+        Case {
+            name: "rename input",
+            mutation: "parameter_renamed",
+            verdict: "REVIEW_REQUIRED",
+            rule: Some("FUNCTION_PARAMETER_RENAMED"),
+            findings: 1,
+        },
+        Case {
+            name: "reorder inputs",
+            mutation: "parameter_reordered",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_PARAMETER_REORDERED"),
+            findings: 1,
+        },
+        Case {
+            name: "add input",
+            mutation: "parameter_added",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_PARAMETER_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "remove input",
+            mutation: "parameter_removed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_PARAMETER_REMOVED"),
+            findings: 1,
+        },
+        Case {
+            name: "change input type",
+            mutation: "parameter_type",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_PARAMETER_TYPE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "change to nested map/option/vec",
+            mutation: "nested_type",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_PARAMETER_TYPE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "change output type",
+            mutation: "output_type",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_OUTPUT_TYPE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "change output count",
+            mutation: "output_count",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_OUTPUT_COUNT_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "add struct",
+            mutation: "struct_added",
+            verdict: "COMPATIBLE",
+            rule: Some("TYPE_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "add struct field",
+            mutation: "struct_field_added",
+            verdict: "INCOMPATIBLE",
+            rule: Some("STRUCT_FIELD_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "remove struct field",
+            mutation: "struct_field_removed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("STRUCT_FIELD_REMOVED"),
+            findings: 1,
+        },
+        Case {
+            name: "struct field type",
+            mutation: "struct_field_type",
+            verdict: "INCOMPATIBLE",
+            rule: Some("STRUCT_FIELD_TYPE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "BytesN size",
+            mutation: "bytes_n_length",
+            verdict: "INCOMPATIBLE",
+            rule: Some("STRUCT_FIELD_TYPE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "struct field reorder",
+            mutation: "struct_field_order",
+            verdict: "REVIEW_REQUIRED",
+            rule: Some("STRUCT_FIELD_REORDERED"),
+            findings: 1,
+        },
+        Case {
+            name: "add numeric enum variant",
+            mutation: "enum_added",
+            verdict: "REVIEW_REQUIRED",
+            rule: Some("ENUM_VARIANT_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "remove numeric enum variant",
+            mutation: "enum_removed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("ENUM_VARIANT_REMOVED"),
+            findings: 1,
+        },
+        Case {
+            name: "enum discriminant changes",
+            mutation: "enum_discriminant",
+            verdict: "INCOMPATIBLE",
+            rule: Some("ENUM_DISCRIMINANT_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "numeric enum changes to tagged union",
+            mutation: "type_kind_changed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("TYPE_KIND_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "add union case",
+            mutation: "union_added",
+            verdict: "REVIEW_REQUIRED",
+            rule: Some("UNION_VARIANT_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "remove union case",
+            mutation: "union_removed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("UNION_VARIANT_REMOVED"),
+            findings: 1,
+        },
+        Case {
+            name: "union payload type",
+            mutation: "union_payload_type",
+            verdict: "INCOMPATIBLE",
+            rule: Some("UNION_PAYLOAD_TYPE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "union payload arity",
+            mutation: "union_payload_count",
+            verdict: "INCOMPATIBLE",
+            rule: Some("UNION_PAYLOAD_COUNT_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "add error enum",
+            mutation: "error_definition_added",
+            verdict: "COMPATIBLE",
+            rule: Some("ERROR_DEFINITION_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "add error case",
+            mutation: "error_case_added",
+            verdict: "REVIEW_REQUIRED",
+            rule: Some("ERROR_CASE_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "remove error case",
+            mutation: "error_case_removed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("ERROR_CASE_REMOVED"),
+            findings: 1,
+        },
+        Case {
+            name: "rename error case stable code",
+            mutation: "error_case_renamed",
+            verdict: "REVIEW_REQUIRED",
+            rule: Some("ERROR_CASE_RENAMED"),
+            findings: 1,
+        },
+        Case {
+            name: "change error code",
+            mutation: "error_code_changed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("ERROR_CODE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "add event",
+            mutation: "event_added",
+            verdict: "COMPATIBLE",
+            rule: Some("EVENT_ADDED"),
+            findings: 1,
+        },
+        Case {
+            name: "remove event",
+            mutation: "event_removed",
+            verdict: "INCOMPATIBLE",
+            rule: Some("EVENT_REMOVED"),
+            findings: 1,
+        },
+        Case {
+            name: "event prefix change",
+            mutation: "event_prefix",
+            verdict: "INCOMPATIBLE",
+            rule: Some("EVENT_PREFIX_TOPICS_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "event format change",
+            mutation: "event_format",
+            verdict: "INCOMPATIBLE",
+            rule: Some("EVENT_DATA_FORMAT_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "event data type change",
+            mutation: "event_param_type",
+            verdict: "INCOMPATIBLE",
+            rule: Some("EVENT_PARAMETER_TYPE_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "event topic/data location",
+            mutation: "event_location",
+            verdict: "INCOMPATIBLE",
+            rule: Some("EVENT_PARAMETER_LOCATION_CHANGED"),
+            findings: 1,
+        },
+        Case {
+            name: "rename event data parameter",
+            mutation: "event_param_renamed",
+            verdict: "REVIEW_REQUIRED",
+            rule: Some("EVENT_PARAMETER_RENAMED"),
+            findings: 1,
+        },
+        Case {
+            name: "event param reorder",
+            mutation: "event_param_order",
+            verdict: "INCOMPATIBLE",
+            rule: Some("EVENT_PARAMETER_REORDERED"),
+            findings: 1,
+        },
+        Case {
+            name: "mixed breaking/review/additive",
+            mutation: "mixed_severity",
+            verdict: "INCOMPATIBLE",
+            rule: Some("FUNCTION_PARAMETER_TYPE_CHANGED"),
+            findings: 3,
+        },
     ];
     let base = baseline();
     let bytes = wasm(&base);
-    assert!(bytes.len() > 127, "fixture must exercise multi-byte WASM LEB encoding");
+    assert!(
+        bytes.len() > 127,
+        "fixture must exercise multi-byte WASM LEB encoding"
+    );
     for case in cases {
         let mut upgraded = base.clone();
         apply(case.mutation, &mut upgraded);
         let output = run(&bytes, &wasm(&upgraded));
-        assert_eq!(output.status.code(), Some(0), "{} stderr: {}", case.name, String::from_utf8_lossy(&output.stderr));
+        assert_eq!(
+            output.status.code(),
+            Some(0),
+            "{} stderr: {}",
+            case.name,
+            String::from_utf8_lossy(&output.stderr)
+        );
         assert!(output.stderr.is_empty(), "{}", case.name);
         let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(json["analysis"]["verdict"], case.verdict, "{}", case.name);
         let findings = json["analysis"]["findings"].as_array().unwrap();
         assert_eq!(findings.len(), case.findings, "{}", case.name);
         if let Some(rule) = case.rule {
-            assert!(findings.iter().any(|f| f["rule"]["id"] == rule), "fixture {} missing expected rule {}", case.name, rule);
+            assert!(
+                findings.iter().any(|f| f["rule"]["id"] == rule),
+                "fixture {} missing expected rule {}",
+                case.name,
+                rule
+            );
         }
         let total = json["analysis"]["totals"]["breaking"].as_u64().unwrap()
-            + json["analysis"]["totals"]["review_required"].as_u64().unwrap()
+            + json["analysis"]["totals"]["review_required"]
+                .as_u64()
+                .unwrap()
             + json["analysis"]["totals"]["non_breaking"].as_u64().unwrap();
         assert_eq!(total as usize, findings.len(), "{} counts", case.name);
     }

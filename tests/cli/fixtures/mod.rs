@@ -147,63 +147,81 @@ pub fn baseline() -> Vec<ScSpecEntry> {
 }
 
 pub fn function_mut(entries: &mut [ScSpecEntry]) -> &mut ScSpecFunctionV0 {
-    entries.iter_mut().find_map(|entry| {
-        if let ScSpecEntry::FunctionV0(value) = entry {
-            Some(value)
-        } else {
-            None
-        }
-    }).unwrap()
+    entries
+        .iter_mut()
+        .find_map(|entry| {
+            if let ScSpecEntry::FunctionV0(value) = entry {
+                Some(value)
+            } else {
+                None
+            }
+        })
+        .unwrap()
 }
 
 pub fn struct_mut(entries: &mut [ScSpecEntry]) -> &mut ScSpecUdtStructV0 {
-    entries.iter_mut().find_map(|entry| {
-        if let ScSpecEntry::UdtStructV0(value) = entry {
-            Some(value)
-        } else {
-            None
-        }
-    }).unwrap()
+    entries
+        .iter_mut()
+        .find_map(|entry| {
+            if let ScSpecEntry::UdtStructV0(value) = entry {
+                Some(value)
+            } else {
+                None
+            }
+        })
+        .unwrap()
 }
 
 pub fn enum_mut(entries: &mut [ScSpecEntry]) -> &mut ScSpecUdtEnumV0 {
-    entries.iter_mut().find_map(|entry| {
-        if let ScSpecEntry::UdtEnumV0(value) = entry {
-            Some(value)
-        } else {
-            None
-        }
-    }).unwrap()
+    entries
+        .iter_mut()
+        .find_map(|entry| {
+            if let ScSpecEntry::UdtEnumV0(value) = entry {
+                Some(value)
+            } else {
+                None
+            }
+        })
+        .unwrap()
 }
 
 pub fn union_mut(entries: &mut [ScSpecEntry]) -> &mut ScSpecUdtUnionV0 {
-    entries.iter_mut().find_map(|entry| {
-        if let ScSpecEntry::UdtUnionV0(value) = entry {
-            Some(value)
-        } else {
-            None
-        }
-    }).unwrap()
+    entries
+        .iter_mut()
+        .find_map(|entry| {
+            if let ScSpecEntry::UdtUnionV0(value) = entry {
+                Some(value)
+            } else {
+                None
+            }
+        })
+        .unwrap()
 }
 
 pub fn error_mut(entries: &mut [ScSpecEntry]) -> &mut ScSpecUdtErrorEnumV0 {
-    entries.iter_mut().find_map(|entry| {
-        if let ScSpecEntry::UdtErrorEnumV0(value) = entry {
-            Some(value)
-        } else {
-            None
-        }
-    }).unwrap()
+    entries
+        .iter_mut()
+        .find_map(|entry| {
+            if let ScSpecEntry::UdtErrorEnumV0(value) = entry {
+                Some(value)
+            } else {
+                None
+            }
+        })
+        .unwrap()
 }
 
 pub fn event_mut(entries: &mut [ScSpecEntry]) -> &mut ScSpecEventV0 {
-    entries.iter_mut().find_map(|entry| {
-        if let ScSpecEntry::EventV0(value) = entry {
-            Some(value)
-        } else {
-            None
-        }
-    }).unwrap()
+    entries
+        .iter_mut()
+        .find_map(|entry| {
+            if let ScSpecEntry::EventV0(value) = entry {
+                Some(value)
+            } else {
+                None
+            }
+        })
+        .unwrap()
 }
 
 pub fn leb_u32(output: &mut Vec<u8>, mut value: u32) {
