@@ -119,8 +119,7 @@ fn fixture_git_object_hashes_match_the_pinned_upstream_sources() {
 #[test]
 fn all_four_compiled_contract_specs_extract_without_empty_fallbacks() {
     for artifact in real_artifacts() {
-        let interface = extract_interface_from_wasm(artifact.bytes)
-            .unwrap_or_else(|err| panic!("{} failed extraction: {err}", artifact.name));
+        let interface = extract_interface_from_wasm(artifact.bytes).unwrap();
         assert!(
             !interface.functions.is_empty(),
             "{} has no functions",
