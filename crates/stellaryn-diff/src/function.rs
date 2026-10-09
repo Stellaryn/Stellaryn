@@ -126,55 +126,6 @@ fn diff_parameters(before: &Function, after: &Function, changes: &mut Vec<Functi
         return;
     }
 
-    if is_pure_reorder(&before.parameters, &after.parameters) {
-        changes.push(FunctionChange {
-            id: FunctionChangeId::FunctionParameterReordered,
-            subject: before.stable_id(),
-            classification: ChangeClassification::Breaking,
-            summary: format!("Parameters for function '{}' were reordered.", before.name),
-            before_evidence: Some(before.signature_display()),
-            after_evidence: Some(after.signature_display()),
-        });
-        return;
-    }
-
-    if before.parameters.len() == after.parameters.len() {
-        for (index, (old, new)) in before
-            .parameters
-            .iter()
-            .zip(after.parameters.iter())
-            .enumerate()
-        {
-            match (old.name == new.name, old.type_ref == new.type_ref) {
-                (true, true) => {}
-                (true, false) => push_parameter_type_change(before, after, old, new, changes),
-                (false, true) => changes.push(FunctionChange {
-                    id: FunctionChangeId::FunctionParameterRenamed,
-                    subject: format!("{}::parameter:{index}", before.stable_id()),
-                    classification: ChangeClassification::ReviewRequired,
-                    summary: format!(
-                        "Parameter at index {index} in function '{}' was renamed from '{}' to '{}'.",
-                        before.name, old.name, new.name
-                    ),
-                    before_evidence: Some(format!(
-                        "{}: {}",
-                        old.name,
-                        old.type_ref.display_name()
-                    )),
-                    after_evidence: Some(format!(
-                        "{}: {}",
-                        new.name,
-                        new.type_ref.display_name()
-                    )),
-                }),
-                (false, false) => {
-                    push_parameter_type_change(before, after, old, new, changes);
-                }
-            }
-        }
-        return;
-    }
-
     let before_by_name: BTreeMap<&str, (&Parameter, usize)> = before
         .parameters
         .iter()
@@ -188,39 +139,11 @@ fn diff_parameters(before: &Function, after: &Function, changes: &mut Vec<Functi
         .map(|(index, parameter)| (parameter.name.as_str(), (parameter, index)))
         .collect();
 
-    for (name, (old, index)) in &before_by_name {
-        match after_by_name.get(name) {
-            None => changes.push(FunctionChange {
-                id: FunctionChangeId::FunctionParameterRemoved,
-                subject: format!("{}::parameter:{name}", before.stable_id()),
-                classification: ChangeClassification::Breaking,
-                summary: format!(
-                    "Parameter '{}' at index {} was removed from function '{}'.",
-                    old.name, index, before.name
-                ),
-                before_evidence: Some(format!("{}: {}", old.name, old.type_ref.display_name())),
-                after_evidence: None,
-            }),
-            Some((new, _)) if old.type_ref != new.type_ref => {
+    for (name, (old, _)) in &before_by_name {
+        if let Some((new, _)) = after_by_name.get(name) {
+            if old.type_ref != new.type_ref {
                 push_parameter_type_change(before, after, old, new, changes);
             }
-            Some(_) => {}
-        }
-    }
-
-    for (name, (new, index)) in &after_by_name {
-        if !before_by_name.contains_key(name) {
-            changes.push(FunctionChange {
-                id: FunctionChangeId::FunctionParameterAdded,
-                subject: format!("{}::parameter:{name}", after.stable_id()),
-                classification: ChangeClassification::Breaking,
-                summary: format!(
-                    "Parameter '{}' was added at index {} to function '{}'.",
-                    new.name, index, after.name
-                ),
-                before_evidence: None,
-                after_evidence: Some(format!("{}: {}", new.name, new.type_ref.display_name())),
-            });
         }
     }
 
@@ -250,6 +173,77 @@ fn diff_parameters(before: &Function, after: &Function, changes: &mut Vec<Functi
             after_evidence: Some(after.signature_display()),
         });
     }
+
+    let mut renamed_before = BTreeSet::new();
+    let mut renamed_after = BTreeSet::new();
+
+    if before.parameters.len() == after.parameters.len() {
+        for (index, (old, new)) in before
+            .parameters
+            .iter()
+            .zip(after.parameters.iter())
+            .enumerate()
+        {
+            let old_is_unmatched = !after_by_name.contains_key(old.name.as_str());
+            let new_is_unmatched = !before_by_name.contains_key(new.name.as_str());
+
+            if old_is_unmatched && new_is_unmatched && old.type_ref == new.type_ref {
+                renamed_before.insert(old.name.as_str());
+                renamed_after.insert(new.name.as_str());
+                changes.push(FunctionChange {
+                    id: FunctionChangeId::FunctionParameterRenamed,
+                    subject: format!("{}::parameter:{index}", before.stable_id()),
+                    classification: ChangeClassification::ReviewRequired,
+                    summary: format!(
+                        "Parameter at index {index} in function '{}' was renamed from '{}' to '{}'.",
+                        before.name, old.name, new.name
+                    ),
+                    before_evidence: Some(format!(
+                        "{}: {}",
+                        old.name,
+                        old.type_ref.display_name()
+                    )),
+                    after_evidence: Some(format!(
+                        "{}: {}",
+                        new.name,
+                        new.type_ref.display_name()
+                    )),
+                });
+            }
+        }
+    }
+
+    for (name, (old, index)) in &before_by_name {
+        if !after_by_name.contains_key(name) && !renamed_before.contains(name) {
+            changes.push(FunctionChange {
+                id: FunctionChangeId::FunctionParameterRemoved,
+                subject: format!("{}::parameter:{name}", before.stable_id()),
+                classification: ChangeClassification::Breaking,
+                summary: format!(
+                    "Parameter '{}' at index {} was removed from function '{}'.",
+                    old.name, index, before.name
+                ),
+                before_evidence: Some(format!("{}: {}", old.name, old.type_ref.display_name())),
+                after_evidence: None,
+            });
+        }
+    }
+
+    for (name, (new, index)) in &after_by_name {
+        if !before_by_name.contains_key(name) && !renamed_after.contains(name) {
+            changes.push(FunctionChange {
+                id: FunctionChangeId::FunctionParameterAdded,
+                subject: format!("{}::parameter:{name}", after.stable_id()),
+                classification: ChangeClassification::Breaking,
+                summary: format!(
+                    "Parameter '{}' was added at index {} to function '{}'.",
+                    new.name, index, after.name
+                ),
+                before_evidence: None,
+                after_evidence: Some(format!("{}: {}", new.name, new.type_ref.display_name())),
+            });
+        }
+    }
 }
 
 fn same_parameter_shapes(before: &[Parameter], after: &[Parameter]) -> bool {
@@ -258,18 +252,6 @@ fn same_parameter_shapes(before: &[Parameter], after: &[Parameter]) -> bool {
             .iter()
             .zip(after)
             .all(|(old, new)| old.name == new.name && old.type_ref == new.type_ref)
-}
-
-fn is_pure_reorder(before: &[Parameter], after: &[Parameter]) -> bool {
-    if before.len() != after.len() || same_parameter_shapes(before, after) {
-        return false;
-    }
-
-    before.iter().all(|old| {
-        after
-            .iter()
-            .any(|new| old.name == new.name && old.type_ref == new.type_ref)
-    })
 }
 
 fn push_parameter_type_change(
