@@ -6,9 +6,34 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 
 > Passing Stellaryn is not a security audit and does not prove that a contract upgrade is safe to deploy.
 
+## Quick start
+
+Build Stellaryn from source using the pinned Rust 1.96.0 toolchain:
+
+```bash
+git clone https://github.com/Stellaryn/Stellaryn.git
+cd Stellaryn
+cargo build --release -p stellaryn-cli
+```
+
+Compare two **upstream-compiled WASM fixtures** with a documented breaking ABI change:
+
+```bash
+cargo run -p stellaryn-cli -- compare \
+  tests/fixtures/real/compiled_add_i128.wasm \
+  tests/fixtures/real/compiled_add_u128.wasm \
+  --format json --fail-on never
+```
+
+Expected `INCOMPATIBLE`, with two changed input types and one changed output type. The `never` policy only disables failure on compatibility findings; it **does not change the verdict**.
+
+**Documentation:** [Getting started](docs/getting-started.md) · [Worked examples](docs/examples.md) · [CI setup](docs/ci-integration.md) · [Troubleshooting](docs/troubleshooting.md) · [Full docs index](docs/README.md).
+
+**Contributing:** [How to contribute](CONTRIBUTING.md) · [Write a compatibility rule](docs/rule-authoring.md) · [Scope and limitations](docs/limitations.md) · [Security](SECURITY.md).
+
 ## Status
 
-**Phase 11 / pre-alpha.** Stellaryn compares local Soroban WASM files or Git-committed artifacts using deterministic compatibility rules. The test suite now includes six byte-for-byte pinned, independently compiled public Soroban WASM contracts, an upgrade-like numeric ABI-breaking pair, and reproducible real-artifact CI probes. This remains a spec-level analyzer, not a deployment-safety certificate.
+**Phase 12 / pre-alpha.** Stellaryn compares local Soroban WASM files and Git-committed artifacts using deterministic public-spec rules. It has six pinned independently compiled WASM fixtures, a 44-case synthetic rule matrix, a real-WASM CI probe, and now developer guides, contribution templates, and offline documentation checks. Public GitBook hosting and release packaging are not yet enabled.
 
 ## Implemented
 
@@ -30,6 +55,7 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 - 44-case XDR/WASM spec-level compatibility fixture matrix and malformed-input edge-case tests
 - rejection of empty/duplicate contract spec sections and malformed trailing WASM
 - six independently compiled WASM fixtures with pinned source hashes and CI regression tests
+- contributor and rule-authoring guides, issue forms, PR checklist, GitBook-ready navigation, and CI documentation-link checks
 
 ## Function compatibility rules
 
@@ -95,7 +121,7 @@ cargo test -p stellaryn-cli --test fixture_matrix
 cargo test -p stellaryn-cli --test invalid_fixtures
 ```
 
-The matrix builds valid Soroban `ScSpecEntry` XDR within minimal WebAssembly modules for all six public-spec categories. These are **synthetic specification fixtures, not compiled executable Soroban contracts**. They exercise the official spec reader, normalized model, diff engines, report format, and CLI exit handling; separate validation against independent compiled contracts remains a Phase 11 requirement. See [docs/fixture-matrix.md](docs/fixture-matrix.md).
+The matrix builds valid Soroban `ScSpecEntry` XDR within minimal WebAssembly modules for all six public-spec categories. These are **synthetic specification fixtures, not compiled executable Soroban contracts**. They exercise the official spec reader, normalized model, diff engines, report format, and CLI exit handling; independent compiled-contract validation was added in Phase 11. See [docs/fixture-matrix.md](docs/fixture-matrix.md).
 
 ## Phase 11 — Independently compiled contract validation
 
@@ -134,6 +160,9 @@ Rust library consumers can now use `stellaryn_diff::diff_contracts(&before, &aft
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features
+python3 scripts/check_docs.py
+python3 -m unittest discover -s scripts -p 'test_*.py'
+python3 scripts/real_world_probe.py
 cargo run -p stellaryn-cli -- --help
 ```
 

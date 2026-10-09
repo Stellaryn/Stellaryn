@@ -32,4 +32,4 @@ Variant matching uses stable names, not declaration positions. Numeric-enum disc
 
 ## Boundaries and limitations
 
-Phase 5 does not compare public errors or events (Phase 6), aggregate the whole-contract verdict or process exits (Phase 7), or generate user-facing reports (Phase 8). It does not prove runtime behavior or upgrade safety. Findings identify **spec-level compatibility changes** only.
+The custom-type engine itself does not compare public errors or events, aggregate the whole-contract verdict, or render reports; those are handled by the **already implemented** later engines and CLI. It does not prove runtime behavior or upgrade safety. Findings identify **spec-level compatibility changes** only.

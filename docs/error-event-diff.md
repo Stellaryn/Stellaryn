@@ -36,4 +36,4 @@ Names are matched first, including when positional order changes. Pure renames a
 
 The `diff_errors`, `diff_events`, and `diff_events_and_errors` APIs validate both interfaces before comparison. Findings are sorted by breaking/review/non-breaking priority, rule ID, subject, and summary. Documentation-only changes and error-case declaration reorderings are ignored.
 
-The overall upgrade verdict and process exit policy are postponed until **Phase 7**; human/JSON comparison reports and the end-user CLI are postponed until **Phase 8**. An empty Phase 6 diff means no *error/event spec changes detected*, not a declaration that an upgrade is safe.
+The overall upgrade verdict/exit policy (Phase 7) and the human/JSON reports and end-user CLI (Phase 8) are **now implemented** elsewhere in the workspace. An empty event/error diff means no *error/event spec changes detected*, not a declaration that an upgrade is safe.

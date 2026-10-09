@@ -49,4 +49,4 @@ The default `--fail-on breaking` blocks `INCOMPATIBLE`. `--fail-on review` block
 
 ## Phase 8 acceptance
 
-GitHub CI at the final commit must pass fmt, Clippy warnings-as-errors, all tests, and CLI help. Tests must exercise actual `contractspecv0` WASM generated from typed `ScSpecEntry` XDR to prove output format, deterministic rendering, valid/missing/corrupt input handling, `--fail-on` combinations, stdout/stderr separation, and process exit codes. Git-ref comparison remains Phase 9.
+GitHub CI at the final commit must pass fmt, Clippy warnings-as-errors, all tests, and CLI help. Tests must exercise actual `contractspecv0` WASM generated from typed `ScSpecEntry` XDR to prove output format, deterministic rendering, valid/missing/corrupt input handling, `--fail-on` combinations, stdout/stderr separation, and process exit codes. Git-ref comparison was implemented in Phase 9. Later phases expanded the compiled-contract evidence and developer documentation.

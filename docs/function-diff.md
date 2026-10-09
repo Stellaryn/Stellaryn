@@ -12,7 +12,7 @@ Each finding is one of:
 - `REVIEW_REQUIRED` — a compatibility impact is plausible but not automatically provable as an on-chain break;
 - `NON_BREAKING` — additive function-interface change.
 
-Phase 7 will define the overall contract verdict. Phase 4 intentionally reports findings only.
+Phase 4 originally introduced findings without an aggregate verdict; the later Phase 7 aggregator now combines these function findings with other domains to produce the current overall verdict.
 
 ## Function rules
 
@@ -49,11 +49,4 @@ Documentation-only changes do not produce compatibility findings.
 
 ## Scope boundary
 
-Phase 4 does not compare:
-
-- structs;
-- enums/unions;
-- error enums;
-- events.
-
-Those rule families are intentionally implemented in later phases.
+The function engine only evaluates public function specs. Separate, already implemented engines compare structs, numeric enums, tagged unions, error enums and events. The [overall verdict](verdict-and-exit-policy.md) aggregates those findings; this distinction does not limit the current CLI to functions.

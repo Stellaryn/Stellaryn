@@ -1,7 +1,6 @@
 name: Compatibility classification / false positive or negative
 description: Challenge a finding with verifiable ABI/spec evidence
 title: "[Compatibility]: "
-labels: ["compatibility", "needs-evidence"]
 body:
   - type: markdown
     attributes:

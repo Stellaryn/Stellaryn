@@ -30,7 +30,7 @@ Implemented: typed aggregation across functions, custom types, events, and error
 
 ## Phase 8 — Reports
 
-Terminal and JSON first. Add other formats only with a clear integration need.
+Implemented: `stellaryn compare BEFORE.wasm AFTER.wasm` with deterministic terminal and JSON output, configurable `--fail-on` policy and process exit codes; generated-XDR WASM CLI smoke tests validate the behavior.
 
 ## Phase 9 — Git revision comparison
 
@@ -46,7 +46,7 @@ Implemented: six pinned, independently compiled Soroban contract WASM binaries f
 
 ## Phase 12 — Documentation and contributor readiness
 
-GitBook/public docs, issue templates, contributor workflow, and rule-authoring guidance.
+Implemented: GitHub-hosted Markdown documentation hub and GitBook Git Sync-ready navigation, public reproducible usage/CI examples, troubleshooting/scope guides, compatibility-rule authoring, evidence-first contribution workflow, issue/PR templates, code of conduct and CI checks for local links/navigation. **A separate public GitBook site has not yet been created or connected; repository docs are publicly readable on GitHub.**
 
 ## Phase 13 — Release hardening
 
