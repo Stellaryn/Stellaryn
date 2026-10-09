@@ -1,0 +1,12 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: Stellaryn Documentation
+  structure:
+    - type: space
+      key: space-1
+      title: Stellaryn Docs
+      path: /
+      default: true
+      content:
+        directory: ./docs
+        language: en

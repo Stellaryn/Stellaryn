@@ -58,6 +58,21 @@ class DocsCheckerTests(unittest.TestCase):
             readme.write_text("# Stellaryn\\n**Pre-release**\\n", encoding="utf-8")
             self.assertEqual(check_docs.check_readme_milestones(root), [])
 
+    def test_gitbook_site_mapping_requires_existing_docs_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            self.assertIn("missing required", check_docs.check_site_gitbook_config(root)[0])
+            site = root / "gitbook-docs.yaml"
+            site.write_text("$schema: https://api.gitbook.com/gitbook-docs.yaml\\nsite:\\n", encoding="utf-8")
+            self.assertTrue(any("directory: ./docs" in error for error in check_docs.check_site_gitbook_config(root)))
+            site.write_text(
+                "$schema: https://api.gitbook.com/gitbook-docs.yaml\\n"
+                "site:\\n  structure:\\n    - type: space\\n"
+                "      content:\\n        directory: ./docs\\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(check_docs.check_site_gitbook_config(root), [])
+
 
 
 if __name__ == "__main__":

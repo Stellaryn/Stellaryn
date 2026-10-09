@@ -120,6 +120,23 @@ def check_readme_milestones(root: Path) -> list[str]:
     return []
 
 
+
+def check_site_gitbook_config(root: Path) -> list[str]:
+    """Guard the site-wide Git Sync mapping for the existing docs directory."""
+    path = root / "gitbook-docs.yaml"
+    if not path.is_file():
+        return ["missing required GitBook site Git Sync file: gitbook-docs.yaml"]
+    data = path.read_text(encoding="utf-8")
+    required = (
+        "$schema: https://api.gitbook.com/gitbook-docs.yaml",
+        "site:",
+        "  structure:",
+        "    - type: space",
+        "      content:",
+        "        directory: ./docs",
+    )
+    return [f"gitbook-docs.yaml: missing expected field: {field.strip()}" for field in required if field not in data]
+
 def check_repository(root: Path) -> list[str]:
     root = root.resolve()
     errors = []
@@ -131,6 +148,7 @@ def check_repository(root: Path) -> list[str]:
             errors.extend(check_document(doc, root))
     errors.extend(check_navigation(root))
     errors.extend(check_readme_milestones(root))
+    errors.extend(check_site_gitbook_config(root))
     return errors
 
 
