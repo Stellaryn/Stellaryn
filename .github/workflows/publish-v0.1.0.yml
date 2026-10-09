@@ -9,6 +9,7 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'docs/release-notes-v0.1.0.md'
+      - '.github/release-notes/v0.1.0.md'
   push:
     branches: [release/publish-v0.1.0]
 
@@ -132,5 +133,5 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Stellaryn v0.1.0" \
-            --notes-file docs/release-notes-v0.1.0.md \
+            --notes-file .github/release-notes/v0.1.0.md \
             --latest
