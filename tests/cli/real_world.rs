@@ -18,7 +18,7 @@ struct Artifact {
     git_blob: &'static str,
 }
 
-fn real_artifacts() -> [Artifact; 4] {
+fn real_artifacts() -> [Artifact; 6] {
     [
         Artifact {
             name: "testnet_increment.wasm",
@@ -39,6 +39,16 @@ fn real_artifacts() -> [Artifact; 4] {
             name: "mainnet_aqua_amm.wasm",
             bytes: include_bytes!("../fixtures/real/mainnet_aqua_amm.wasm"),
             git_blob: "be4442d68e11b19efa4e5f3a4462ceeaee71a3bd",
+        },
+        Artifact {
+            name: "compiled_add_i128.wasm",
+            bytes: include_bytes!("../fixtures/real/compiled_add_i128.wasm"),
+            git_blob: "ec29ca8d1273d85b75213cab073c15b4c9454d23",
+        },
+        Artifact {
+            name: "compiled_add_u128.wasm",
+            bytes: include_bytes!("../fixtures/real/compiled_add_u128.wasm"),
+            git_blob: "9e15c73b755bbfb95cc67552907005c7f063fa17",
         },
     ]
 }
@@ -117,7 +127,7 @@ fn fixture_git_object_hashes_match_the_pinned_upstream_sources() {
 }
 
 #[test]
-fn all_four_compiled_contract_specs_extract_without_empty_fallbacks() {
+fn all_six_compiled_contract_specs_extract_without_empty_fallbacks() {
     for artifact in real_artifacts() {
         let interface = extract_interface_from_wasm(artifact.bytes).unwrap();
         assert!(
@@ -254,4 +264,46 @@ fn truncation_of_real_compiled_artifact_fails_instead_of_reporting_compatible() 
     assert_eq!(output.status.code(), Some(1));
     assert!(output.stdout.is_empty());
     assert!(!output.stderr.is_empty());
+}
+
+#[test]
+fn independently_compiled_add_variants_detect_real_parameter_type_break() {
+    let signed = extract_interface_from_wasm(
+        include_bytes!("../fixtures/real/compiled_add_i128.wasm"),
+    )
+    .unwrap();
+    let unsigned = extract_interface_from_wasm(
+        include_bytes!("../fixtures/real/compiled_add_u128.wasm"),
+    )
+    .unwrap();
+
+    let signed_add = signed.functions.iter().find(|f| f.name == "add").unwrap();
+    let unsigned_add = unsigned.functions.iter().find(|f| f.name == "add").unwrap();
+    assert!(!signed_add.parameters.is_empty());
+    assert_eq!(signed_add.parameters.len(), unsigned_add.parameters.len());
+    assert!(signed_add
+        .parameters
+        .iter()
+        .zip(unsigned_add.parameters.iter())
+        .any(|(old, new)| old.type_ref != new.type_ref));
+
+    let diff = diff_contracts(&signed, &unsigned).unwrap();
+    assert_eq!(diff.verdict, Verdict::Incompatible);
+    assert!(diff.findings.iter().any(|finding| matches!(
+        finding.rule,
+        CompatibilityRule::Function(FunctionChangeId::FunctionParameterTypeChanged)
+    )));
+
+    let cli = compare(
+        "compiled_add_i128.wasm",
+        "compiled_add_u128.wasm",
+        &["--format", "json"],
+    );
+    assert_eq!(cli.status.code(), Some(2));
+    assert!(cli.stderr.is_empty());
+    let json: serde_json::Value = serde_json::from_slice(&cli.stdout).unwrap();
+    assert_eq!(json["analysis"]["verdict"], "INCOMPATIBLE");
+    assert!(json["analysis"]["findings"].as_array().unwrap().iter().any(
+        |finding| finding["rule"]["id"] == "FUNCTION_PARAMETER_TYPE_CHANGED"
+    ));
 }

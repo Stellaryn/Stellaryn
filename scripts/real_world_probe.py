@@ -20,11 +20,14 @@ ARTIFACTS = (
     "sdk_constructor.wasm",
     "mainnet_arb_bot.wasm",
     "mainnet_aqua_amm.wasm",
+    "compiled_add_i128.wasm",
+    "compiled_add_u128.wasm",
 )
 
 PAIRS = (
     ("independent testnet versus SDK constructor", "testnet_increment.wasm", "sdk_constructor.wasm"),
     ("different mainnet-dataset contracts", "mainnet_arb_bot.wasm", "mainnet_aqua_amm.wasm"),
+    ("compiled add type variant i128-to-u128", "compiled_add_i128.wasm", "compiled_add_u128.wasm"),
 )
 
 
@@ -69,6 +72,11 @@ def main() -> int:
         assert result["verdict"] == "INCOMPATIBLE", label
         totals = result["totals"]
         assert totals["breaking"] > 0, label
+        if old == "compiled_add_i128.wasm":
+            assert any(
+                entry["rule"]["id"] == "FUNCTION_PARAMETER_TYPE_CHANGED"
+                for entry in result["findings"]
+            ), "compiled type change was missed"
         total = sum(totals.values())
         assert total == len(result["findings"]), label
         print(
