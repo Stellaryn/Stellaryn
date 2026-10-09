@@ -1,0 +1,61 @@
+name: Native release candidates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-release-candidate:
+    name: Native test and package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned native Rust toolchain
+        shell: bash
+        run: |
+          rustup toolchain install 1.96.0 --profile minimal --component clippy --component rustfmt
+          rustup default 1.96.0
+          rustc -vV
+
+      - name: Validate packaging scripts
+        run: python -m unittest discover -s scripts -p 'test_*.py'
+
+      - name: Full native workspace tests
+        run: cargo test --workspace --all-features
+
+      - name: Native release build
+        run: cargo build --release -p stellaryn-cli
+
+      - name: Create deterministic native archive and checksum
+        run: python scripts/package_release.py build --dist dist
+
+      - name: Verify archive and run packaged CLI smoke tests
+        run: python scripts/package_release.py verify --dist dist
+
+      - name: Upload verified release-candidate artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellaryn-${{ runner.os }}-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
