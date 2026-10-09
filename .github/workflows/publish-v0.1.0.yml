@@ -1,0 +1,137 @@
+name: Verify and publish v0.1.0
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/publish-v0.1.0.yml'
+      - 'scripts/verify_release_assets.py'
+      - 'scripts/test_verify_release_assets.py'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'docs/release-notes-v0.1.0.md'
+      - '.github/release-notes/v0.1.0.md'
+  push:
+    branches: [release/publish-v0.1.0]
+
+permissions:
+  contents: read
+
+jobs:
+  native-release:
+    name: Build and verify release (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install pinned native Rust toolchain
+        shell: bash
+        run: |
+          rustup toolchain install 1.96.0 --profile minimal --component rustfmt --component clippy
+          rustup default 1.96.0
+          rustc -vV
+      - name: Confirm release version and run Python regression tests
+        shell: python
+        run: |
+          import tomllib
+          from pathlib import Path
+          with Path("Cargo.toml").open("rb") as source:
+              version = tomllib.load(source)["workspace"]["package"]["version"]
+          assert version == "0.1.0", f"Unexpected version: {version}"
+          import subprocess
+          subprocess.run(["python", "-m", "unittest", "discover", "-s", "scripts", "-p", "test_*.py"], check=True)
+      - name: Test complete native workspace
+        run: cargo test --locked --workspace --all-features
+      - name: Build optimized native CLI
+        run: cargo build --locked --release -p stellaryn-cli
+      - name: Package deterministic native release
+        run: python scripts/package_release.py build --dist dist
+      - name: Verify checksum, package bytes and real WASM behavior
+        run: python scripts/package_release.py verify --dist dist
+      - name: Upload verified platform assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ runner.os }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+  verify-publishable-assets:
+    name: Verify release asset set
+    needs: native-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Download all native packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          merge-multiple: true
+          path: dist
+      - name: Verify exactly three native archives with matching SHA-256 files
+        run: python3 scripts/verify_release_assets.py dist
+
+  publish:
+    name: Publish GitHub Release v0.1.0
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release/publish-v0.1.0'
+    needs: verify-publishable-assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Download independently verified release assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          merge-multiple: true
+          path: dist
+      - name: Revalidate assets before publishing
+        run: python3 scripts/verify_release_assets.py dist
+      - name: Require release commit to equal current main and tag to be absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          main_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ -z "$main_sha" || "$main_sha" != "$GITHUB_SHA" ]]; then
+            echo "Release branch must point to the current main commit" >&2
+            exit 1
+          fi
+          if [[ -n "$(git ls-remote --tags origin refs/tags/v0.1.0)" ]]; then
+            echo "v0.1.0 tag already exists; do not overwrite it" >&2
+            exit 1
+          fi
+          if gh release view v0.1.0 >/dev/null 2>&1; then
+            echo "v0.1.0 release already exists" >&2
+            exit 1
+          fi
+      - name: Create release and tag only after all checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create v0.1.0 dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Stellaryn v0.1.0" \
+            --notes-file .github/release-notes/v0.1.0.md \
+            --latest
