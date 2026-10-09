@@ -50,7 +50,9 @@ Implemented: GitHub-hosted Markdown documentation hub and GitBook Git Sync-ready
 
 ## Phase 13 — Release hardening
 
-Cross-platform release binaries, packaging, checksums, and portability testing.
+Implemented: native Linux x86_64, Windows x86_64/MSVC, and macOS Apple Silicon build-and-test matrix; `Cargo.lock` tracked with locked test/build commands; deterministic `.tar.gz` and `.zip` release-candidate archives; SHA-256 sidecars and automated binary, report and exit-policy smoke checks on **each target**; cross-platform artifacts uploaded by GitHub Actions without publishing a final release. The README is product-facing and explicitly checked to reject numbered phase references.
+
+Scope boundary: tagged public releases, identity-based signing/notarization, more architectures and v0.1.0 release announcement remain Phase 14 or later.
 
 ## Phase 14 — v0.1.0 and Stellar Wave readiness
 

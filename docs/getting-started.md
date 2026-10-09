@@ -13,7 +13,7 @@
 git clone https://github.com/Stellaryn/Stellaryn.git
 cd Stellaryn
 rustup toolchain install 1.96.0 --profile minimal --component rustfmt --component clippy
-cargo build --release -p stellaryn-cli
+cargo build --locked --release -p stellaryn-cli
 ./target/release/stellaryn --help
 ```
 

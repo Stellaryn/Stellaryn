@@ -54,6 +54,30 @@ class PackagingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             package_release.read_verified_entries(archive, "0.1.0-alpha.1", triple)
 
+    def test_corrupted_archive_checksum_blocks_execution(self):
+        (self.root / "target/release/stellaryn").write_bytes(b"native test program")
+        triple = "x86_64-unknown-linux-gnu"
+        archive = package_release.create_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+        archive.write_bytes(archive.read_bytes() + b"tampered archive")
+        with self.assertRaisesRegex(ValueError, "SHA-256 checksum mismatch"):
+            package_release.verify_bundle(self.root, self.dist, "0.1.0-alpha.1", triple)
+
+    def test_tar_symlink_member_is_rejected(self):
+        import tarfile
+
+        triple = "x86_64-unknown-linux-gnu"
+        archive = self.dist / package_release.archive_name("0.1.0-alpha.1", triple)
+        archive.parent.mkdir(parents=True)
+        with tarfile.open(archive, "w:gz") as output:
+            entry = tarfile.TarInfo(
+                package_release.release_basename("0.1.0-alpha.1", triple) + "/stellaryn"
+            )
+            entry.type = tarfile.SYMTYPE
+            entry.linkname = "../../outside"
+            output.addfile(entry)
+        with self.assertRaisesRegex(ValueError, "non-regular bundle member"):
+            package_release.read_verified_entries(archive, "0.1.0-alpha.1", triple)
+
 
 if __name__ == "__main__":
     unittest.main()

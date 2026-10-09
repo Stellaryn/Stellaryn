@@ -10,8 +10,8 @@ Thanks for helping improve this local-first Soroban compatibility analyzer. Cont
 git clone https://github.com/Stellaryn/Stellaryn.git
 cd Stellaryn
 rustup toolchain install 1.96.0 --profile minimal --component rustfmt --component clippy
-cargo test --workspace --all-features
-cargo run -p stellaryn-cli -- --help
+cargo test --locked --workspace --all-features
+cargo run --locked -p stellaryn-cli -- --help
 ```
 
 The supported CI baseline is Ubuntu with pinned Rust **1.96.0**. A native Windows release has not yet been validated.
@@ -35,7 +35,7 @@ Before starting a major rule-policy or serialized-schema change, open an issue d
 4. Re-run the quality gates **in full**:
    ```bash
    cargo fmt --all -- --check
-   cargo clippy --workspace --all-targets --all-features -- -D warnings
+   cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
    cargo test --workspace --all-features
    python3 scripts/check_docs.py
    python3 -m unittest discover -s scripts -p 'test_*.py'
