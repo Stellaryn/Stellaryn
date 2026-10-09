@@ -51,14 +51,12 @@ class ReleaseAssetsTests(unittest.TestCase):
 
     def test_symlink_archive_fails_closed(self):
         target = self.dist / verify_release_assets.ARCHIVES[1]
-        external = self.dist / "external"
-        external.write_bytes(b"external")
         target.unlink()
         try:
-            target.symlink_to(external)
+            target.symlink_to(self.dist / verify_release_assets.ARCHIVES[0])
         except OSError:
             self.skipTest("Symlink creation not supported by test runner")
-        with self.assertRaisesRegex(ValueError, "asset set mismatch|unsafe"):
+        with self.assertRaisesRegex(ValueError, "unsafe"):
             verify_release_assets.verify_release_assets(self.dist)
 
 
