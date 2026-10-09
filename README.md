@@ -8,7 +8,7 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 
 ## Status
 
-**Phase 10 / pre-alpha.** Stellaryn compares local Soroban WASM files and committed Git artifacts using the same compatibility rules, with an expanded deterministic 44-case specification fixture matrix and malformed-WASM fail-closed tests. Validation against independently compiled public contracts is planned for Phase 11.
+**Phase 11 / pre-alpha.** Stellaryn compares local Soroban WASM files or Git-committed artifacts using deterministic compatibility rules. The test suite now includes six byte-for-byte pinned, independently compiled public Soroban WASM contracts, an upgrade-like numeric ABI-breaking pair, and reproducible real-artifact CI probes. This remains a spec-level analyzer, not a deployment-safety certificate.
 
 ## Implemented
 
@@ -29,6 +29,7 @@ Stellaryn is a local-first Rust CLI and library for comparing Soroban contract i
 - non-mutating Git revision comparison for committed WASM artifacts
 - 44-case XDR/WASM spec-level compatibility fixture matrix and malformed-input edge-case tests
 - rejection of empty/duplicate contract spec sections and malformed trailing WASM
+- six independently compiled WASM fixtures with pinned source hashes and CI regression tests
 
 ## Function compatibility rules
 
@@ -95,6 +96,17 @@ cargo test -p stellaryn-cli --test invalid_fixtures
 ```
 
 The matrix builds valid Soroban `ScSpecEntry` XDR within minimal WebAssembly modules for all six public-spec categories. These are **synthetic specification fixtures, not compiled executable Soroban contracts**. They exercise the official spec reader, normalized model, diff engines, report format, and CLI exit handling; separate validation against independent compiled contracts remains a Phase 11 requirement. See [docs/fixture-matrix.md](docs/fixture-matrix.md).
+
+## Phase 11 — Independently compiled contract validation
+
+```bash
+cargo test -p stellaryn-cli --test real_world
+python3 scripts/real_world_probe.py
+```
+
+This uses six externally compiled Soroban WASM artifacts (including the official SDK's constructor fixture, a published testnet example, and larger mainnet-dataset samples) rather than just minimal spec-section modules. The compiled `add` variants demonstrate a real breaking `i128 → u128` ABI difference. See [real-world validation](docs/real-world-validation.md) and [fixture provenance](tests/fixtures/real/README.md).
+
+**Scope limitation:** The public-mainnet attribution comes from the upstream dataset, not independent chain verification; the compiled `add` variants are not confirmed historical upgrades of one deployed contract. A spec-level compatible result cannot establish stored-state or runtime upgrade safety.
 
 ## Programmatic comparison and CI policy (Phase 7)
 

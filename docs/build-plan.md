@@ -42,7 +42,7 @@ Implemented: 44 deterministic XDR-backed golden compatibility scenarios across a
 
 ## Phase 11 — Real-world validation
 
-Pinned public Soroban repositories, manual finding review, and false-positive regression fixes.
+Implemented: six pinned, independently compiled Soroban contract WASM binaries from three upstream public repositories, real executable-code and Git-object-hash provenance tests, spec extraction and self-comparison, compiled i128/u128 ABI-breaking pair, complex AMM/arb-bot cross-comparisons, and a CI probe printing inspectable findings. These checks do not independently verify on-chain deployment history or stored-state upgrade safety.
 
 ## Phase 12 — Documentation and contributor readiness
 
