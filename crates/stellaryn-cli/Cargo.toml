@@ -38,3 +38,11 @@ path = "../../tests/cli/compare.rs"
 [[test]]
 name = "git_compare"
 path = "../../tests/cli/git_compare.rs"
+
+[[test]]
+name = "fixture_matrix"
+path = "../../tests/cli/fixture_matrix.rs"
+
+[[test]]
+name = "invalid_fixtures"
+path = "../../tests/cli/invalid_fixtures.rs"
