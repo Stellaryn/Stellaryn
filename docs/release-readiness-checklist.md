@@ -1,8 +1,16 @@
-# Stellaryn v0.1.0 — prepublication checklist
+# Stellaryn v0.1.0 — release and remaining readiness checklist
 
-> **Working release gate, reviewed 2026-10-09.** This is an engineering checklist, not a published-release announcement or a statement of Drips eligibility. Recheck the current `main` SHA and live CI before accepting any item. Do not create a Git tag, publish a GitHub Release, or submit an application without the owner's explicit authorization.
+> **Verified release update, 2026-10-09:** [v0.1.0 was published](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) from tag SHA `17de3459ef24641c6544e845e35ba5a7fbcd0f9e`, with six platform/checksum assets. [Release workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203) completed successfully. This checklist also preserves the previous historical prepublication baseline and tracks **still-open** GitBook and application work; it is not evidence of Drips eligibility.
 
-## Verified release-hardening baseline
+## Verified public release (2026-10-09)
+
+- [x] Workspace and lockfile version `0.1.0`; CLI version and product metadata tested on final release commit.
+- [x] Final baseline same-commit [CI](https://github.com/Stellaryn/Stellaryn/actions/runs/37982084864), [Linux/Windows/macOS candidates](https://github.com/Stellaryn/Stellaryn/actions/runs/37982085083), and [publication workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203) successful.
+- [x] [Public v0.1.0 Release](https://github.com/Stellaryn/Stellaryn/releases/tag/v0.1.0) verified: tag, six uploaded archive/`.sha256` assets, linked release notes, and tag SHA `17de3459ef24641c6544e845e35ba5a7fbcd0f9e`.
+- [ ] GitBook site remains unverified; do not describe its publication as complete until imported pages and public URL are checked.
+- [ ] Stellar Wave/Drips eligibility, application and approval remain unverified.
+
+## Historical verified release-hardening baseline
 
 - Baseline `main` SHA on 2026-10-09: [`615af5df1de4c2f78be8a77cc49af2b2560fd87a`](https://github.com/Stellaryn/Stellaryn/commit/615af5df1de4c2f78be8a77cc49af2b2560fd87a).
 - [Standard CI run 37970023694](https://github.com/Stellaryn/Stellaryn/actions/runs/37970023694): successful quality job on that exact SHA (documentation, formatting, warnings-as-errors Clippy, workspace tests, real compiled-WASM probe, CLI help).
@@ -18,24 +26,24 @@
 
 - [x] Maintain repository-owned documentation in `docs/` with `.gitbook.yaml` at the repository root.
 - [x] Create an empty GitBook site named **Stellaryn Documentation** in the connected organization (site ID `site_V9vjJ` on 2026-10-09).
-- [ ] Configure Git Sync **in the GitBook app** against `Stellaryn/Stellaryn`, branch `main`. This connection cannot be completed through the available GitBook integration.
+- [ ] Complete the **pending** GitBook site-level Git Sync setup in the app against `Stellaryn/Stellaryn`, branch `main`, project root `./`. The repository's `gitbook-docs.yaml` now exists; site-level authorization/sync remains pending.
 - [ ] For the **initial import**, choose **GitHub → GitBook**. Never choose GitBook → GitHub when importing into the empty site, since that could overwrite existing repository documentation.
 - [ ] Verify imported navigation, code blocks, internal links, commands, images, limitation wording, and that internal milestones do not appear in the public root README.
 - [ ] Publish the populated site and check its actual public URL. Add that URL to the public README only after it resolves.
 
 ## Release preparation (no publishing without approval)
 
-- [ ] Decide whether to release as `v0.1.0` or retain a prerelease label; record version semantics and intended support targets.
-- [ ] Update workspace version, lockfile and related version-sensitive docs/scripts in a reviewable change; run strict quality gates and test CLI `--version`.
-- [ ] Verify the final release candidate on the **same final commit** with [standard CI](https://github.com/Stellaryn/Stellaryn/actions/workflows/ci.yml) and [native release-candidate CI](https://github.com/Stellaryn/Stellaryn/actions/workflows/portability.yml).
-- [ ] Confirm each target's actual `rustc -vV` host triple, package filename, SHA-256 sidecar, binary identity, real WASM verdict and expected exit behavior. Keep negative/tampering tests green.
-- [ ] Write release notes, installation and verification instructions, limitations, and a decision on signing/provenance; do not imply signing unless actually implemented and verified.
-- [ ] Decide on the release/tag commit and rollback/correction procedure. Obtain the owner's explicit approval **before** creating any tag or GitHub Release.
-- [ ] After authorized publication, inspect the live GitHub Release, downloadable assets and matching published checksums; update README and `docs/releasing.md` to reflect the observed state.
+- [x] Decide release version `v0.1.0`; record verified target triples and scope.
+- [x] Update workspace version, lockfile and version-sensitive docs/tests through verified PR #2.
+- [x] Verify final release commit on [standard CI](https://github.com/Stellaryn/Stellaryn/actions/runs/37982084864) and [native release-candidate CI](https://github.com/Stellaryn/Stellaryn/actions/runs/37982085083).
+- [x] Confirm target triples, release asset names, sidecars, packaged executable behavior, known real-WASM verdict and negative/tampering checks with [publishing workflow](https://github.com/Stellaryn/Stellaryn/actions/runs/37982396203).
+- [x] Publish reviewed release notes and limitations, and clearly document SHA-256 integrity **without** any identity-signing or notarization claim.
+- [x] Owner authorized publication in this conversation, and the workflow created the tag only from the exact verified `main` commit. Never overwrite the tag; issue a new version for corrections.
+- [x] Inspect the live public GitHub Release with its six downloadable assets; reconcile root README and `docs/releasing.md` through a separate reviewed docs PR.
 
 ## Contributor and application readiness
 
-- [ ] Curate a small number of genuine, independently actionable contributor issues with owners, reproducible context, acceptance checks and test expectations. Do not generate superficial issue volume.
+- [x] Curate three genuine, independently actionable contributor issues [#3](https://github.com/Stellaryn/Stellaryn/issues/3), [#4](https://github.com/Stellaryn/Stellaryn/issues/4), [#5](https://github.com/Stellaryn/Stellaryn/issues/5); ownership/assignment remains to be confirmed.
 - [ ] Prepare an authentic CLI walkthrough/demo showing real compiled WASM and incompatibility findings; keep tool scope and limitations explicit.
 - [ ] Confirm current official Stellar Wave/Drips program rules and applicable dates from primary sources before asserting eligibility; this checklist does **not** establish approval.
 - [ ] Assemble evidence: repo, license, exact SHA, same-commit CI links, docs, public release, contributor materials, maintainer contact/ownership and real usage signals (if any). Mark missing evidence as unknown.
